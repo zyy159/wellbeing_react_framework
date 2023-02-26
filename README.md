@@ -18,15 +18,12 @@ Currently, we decide to use the ***React*** Framework to build the front-end.
 
 ## Getting Started
 - install the dependencies
-
 ```npm install```
 
 - start the app
-
 ```npm start```
 
 - Builds the app for production 
-
 ```npm run build```
 
 ## Repository Introduction
