@@ -1,6 +1,6 @@
 import logo from '../Picture/HSBC-LOGO.png';
 import background_pic from '../Picture/Signup Background.png';
-import history from "../Component/history";
+import history from "../Tool/history";
 import React, {useCallback} from "react";
 
 import InputAdornment from "@mui/material/InputAdornment";
@@ -11,7 +11,7 @@ import Button from "@mui/material/Button";
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
-import AppHeader from '../Component/App_Header';
+import AppHeader from '../Tool/App_Header';
 import Captcha from 'react-captcha-code';
 import {Navigate} from 'react-router-dom';
 

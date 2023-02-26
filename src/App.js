@@ -1,11 +1,11 @@
 import './App.css';
 import React from "react";
-import history from "./Component/history";
-import asyncComponent from "./Component/AsyncComponent";
+import history from "./Tool/history";
+import asyncComponent from "./Tool/AsyncComponent";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-const SignUp = asyncComponent(() => import("./Page/SignUp"));
-const SignIn = asyncComponent(() => import("./Page/SignIn"));
+const SignUp = asyncComponent(() => import("./Component/SignUp"));
+const SignIn = asyncComponent(() => import("./Component/SignIn"));
 
 class App extends React.Component{
   render() {
