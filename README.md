@@ -18,15 +18,12 @@ Currently, we decide to use the ***React*** Framework to build the front-end.
 
 ## Getting Started
 - install the dependencies
-
 ```npm install```
 
 - start the app
-
 ```npm start```
 
 - Builds the app for production 
-
 ```npm run build```
 
 ## Repository Introduction
@@ -40,5 +37,5 @@ Currently, we decide to use the ***React*** Framework to build the front-end.
     - ***App.js***: The summary file containing all the components' information and their routes
     - ***index.js***: The main entrance
 - ***package.json***: The main configuration file, including project name, version, dependencies, scripts, etc.
-
+***
 *If you would like to learn more, please refer to the [Wellbeing React Framework WIKI](https://github.com/zyy159/wellbeing_react_framework/wiki).*
