@@ -9,6 +9,7 @@ const SignIn = asyncComponent(() => import("./Component/SignIn"));
 const Home = asyncComponent(() => import("./Component/Home"));
 const Yoga = asyncComponent(() => import("./Component/QuickStart_Yoga"));
 const ExerciseOption = asyncComponent(() => import("./Component/ExerciseOption"));
+const Working_Yoga = asyncComponent(() => import("./Component/Working_Yoga"));
 
 class App extends React.Component{
   render() {
@@ -20,6 +21,7 @@ class App extends React.Component{
           <Route path="/Home" element={<Home/>} />
           <Route path="/Yoga" element={<Yoga/>} />
           <Route path="/ExerciseOption" element={<ExerciseOption/>} />
+          <Route path="/Working_Yoga" element={<Working_Yoga/>} />
         </Routes>
       </Router>
     );

@@ -58,16 +58,19 @@ function SignIn() {
     let data = new FormData();
     data.append("Username",values.username);
     data.append("Password",values.password);
-    axios.post(server+"/SignIn/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
-      console.log("response: ",response);
-        if(response.status===200){
-          cookie.save("user_id",values.username);
-          history.push({pathname:"/Home",state:{}});
-          setTopage("Home");
-        }else{
-          console.log("Fail");
-        }
-    })
+    cookie.save("user_id",values.username);
+    history.push({pathname:"/Home",state:{}});
+    setTopage("Home");
+    // axios.post(server+"/SignIn/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
+    //   console.log("response: ",response);
+    //     if(response.status===200){
+    //       cookie.save("user_id",values.username);
+    //       history.push({pathname:"/Home",state:{}});
+    //       setTopage("Home");
+    //     }else{
+    //       console.log("Fail");
+    //     }
+    // })
   }
   useEffect(()=>{
     if(cookie.load('user_id')){

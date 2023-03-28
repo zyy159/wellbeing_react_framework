@@ -85,16 +85,16 @@ function SignUp() {
     data.append("Username",values.username);
     data.append("Email",values.email);
     data.append("Password",values.password);
-    axios.post(server+"/SignUp/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
-      console.log("response: ",response);
-        if(response.status===200){
-          cookie.save("user_id",values.username);
-          history.push({pathname:"/Home",state:{}});
-          setTopage("Home");
-        }else{
-          console.log("Fail");
-        }
-    })
+    // axios.post(server+"/SignUp/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
+    //   console.log("response: ",response);
+    //     if(response.status===200){
+    //       cookie.save("user_id",values.username);
+    //       history.push({pathname:"/Home",state:{}});
+    //       setTopage("Home");
+    //     }else{
+    //       console.log("Fail");
+    //     }
+    // })
   }
   useEffect(()=>{
     if(cookie.load('user_id')){
