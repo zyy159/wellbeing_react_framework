@@ -23,7 +23,7 @@ import cookie from "react-cookies";
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://127.0.0.1:8000';
+const server = 'http://54.237.200.39:8080/';
 
 function SignUp() {
   const  [values, setValues] = React.useState({
@@ -82,19 +82,20 @@ function SignUp() {
       handleRefresh();
     }
     let data = new FormData();
-    data.append("Username",values.username);
-    data.append("Email",values.email);
-    data.append("Password",values.password);
-    // axios.post(server+"/SignUp/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
-    //   console.log("response: ",response);
-    //     if(response.status===200){
-    //       cookie.save("user_id",values.username);
-    //       history.push({pathname:"/Home",state:{}});
-    //       setTopage("Home");
-    //     }else{
-    //       console.log("Fail");
-    //     }
-    // })
+    data.append("username",values.username);
+    data.append("email",values.email);
+    data.append("password1",values.password);
+    data.append("password2",values.password_verfy);
+    axios.post(server+"/rest-auth/registration/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
+      console.log("response: ",response);
+        if(response.status===201){
+          cookie.save("user_id",values.username);
+          history.push({pathname:"/Home",state:{}});
+          setTopage("Home");
+        }else{
+          console.log("Fail");
+        }
+    })
   }
   useEffect(()=>{
     if(cookie.load('user_id')){

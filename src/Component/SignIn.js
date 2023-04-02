@@ -22,7 +22,7 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://127.0.0.1:8000';
+const server = 'http://54.237.200.39:8080/';
 
 function SignIn() {
   const  [values, setValues] = React.useState({
@@ -56,21 +56,21 @@ function SignIn() {
       alert("Please input the correct Verification Code")
     }
     let data = new FormData();
-    data.append("Username",values.username);
-    data.append("Password",values.password);
+    data.append("username",values.username);
+    data.append("password",values.password);
     cookie.save("user_id",values.username);
     history.push({pathname:"/Home",state:{}});
     setTopage("Home");
-    // axios.post(server+"/SignIn/",data,{headers:{"Content-Type":'multipart/form-data'}}).then(function (response) {
-    //   console.log("response: ",response);
-    //     if(response.status===200){
-    //       cookie.save("user_id",values.username);
-    //       history.push({pathname:"/Home",state:{}});
-    //       setTopage("Home");
-    //     }else{
-    //       console.log("Fail");
-    //     }
-    // })
+    axios.post(server+"/rest-auth/login/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
+      console.log("response: ",response);
+        if(response.status===200){
+          cookie.save("user_id",values.username);
+          history.push({pathname:"/Home",state:{}});
+          setTopage("Home");
+        }else{
+          console.log("Fail");
+        }
+    })
   }
   useEffect(()=>{
     if(cookie.load('user_id')){
