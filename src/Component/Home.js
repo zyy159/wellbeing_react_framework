@@ -54,7 +54,7 @@ function Home() {
                                           xs="auto" sx={{mb: 1}}>
                                         <Avatar sx={{bgcolor: red[500], width: 56, height: 56}} alt="Stanven"/>
                                         <Typography variant="h5" sx={{ml: 2, fontWeight: 'bold', lineHeight: 1.5}}>
-                                            Hi, Stanven! Get started now?
+                                            Hi, {cookie.load('user_id')}! Get started now?
                                         </Typography>
                                     </Grid>
                                     <Grid container item direction="row" justifyContent="center" alignItems="center"

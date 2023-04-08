@@ -23,7 +23,7 @@ import cookie from "react-cookies";
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://54.237.200.39:8080/';
+const server = 'http://localhost:80/';
 
 function SignUp() {
   const  [values, setValues] = React.useState({
