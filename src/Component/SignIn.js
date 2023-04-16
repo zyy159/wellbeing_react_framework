@@ -61,10 +61,11 @@ function SignIn() {
     cookie.save("user_id",values.username);
     history.push({pathname:"/Home",state:{}});
     setTopage("Home");
-    axios.post(server+"/rest-auth/login/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
+    axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json','Authorization':'Token 592f3167fb0acffd429da1ac775b458bd790ac28'}}).then(function (response) {
       console.log("response: ",response);
         if(response.status===200){
           cookie.save("user_id",values.username);
+          cookie.save("token",response.data.key);
           history.push({pathname:"/Home",state:{}});
           setTopage("Home");
         }else{
