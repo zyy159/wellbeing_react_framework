@@ -1,6 +1,6 @@
 import AppHeader from '../Tool/App_Header';
 import Footer from '../Tool/Footer';
-import React from "react";
+//import React from "react";
 import sport_video from './Sport_video.js';
 import Calories from '../Picture/Calories_Chart.png';
 import Mountain from '../Picture/Yoga_Ai.png'
@@ -12,15 +12,83 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import { useLocation } from 'react-router-dom';
+import React, {useState, useEffect} from "react";
+
+import cookie from "react-cookies";
+
+import axios from 'axios';
+axios.defaults.withCredentials = true;
+axios.defaults.headers.post['Content-Type'] = "application/json";
+const server = 'http://localhost:80/';
 
 
 function Working_Yoga(){
+    const [topage, setTopage] = React.useState("");
+    const location = useLocation();
+    const motion = location.state
+    console.log('motion:' + motion.url);
+    const [workout, setWorkout] = React.useState("");
+    const [practice, setPractice] = React.useState("");
 
+    useEffect(()=>{
+      console.log("------------------");
+      console.log('workout:' + workout);
+      console.log('practice:' + practice);
+      const user_id=cookie.load('user_id');
+      const token=cookie.load('token');
+      console.log('token:' + token);
+      if (workout===""){
+          const workout_data = {
+            label: user_id + "_" + new Date().toString()
+          }
+          axios.post(server+"exercise/workouts/",workout_data,{headers:{"Content-Type":'application/json','Authorization':'Token ' + token}}).then(function (response) {
+          console.log("response: ",response);
+          if(response.status===201){
+              setWorkout(response.data.url);
+              console.log('workout:' + response.data.url);
+              console.log('workout:' + workout);
+              if (practice===""){
+                const practice_data = {
+                    workout:response.data.url,
+                    motion:motion.url
+                  }
+                 axios.post(server+"exercise/practices/",practice_data,{headers:{"Content-Type":'application/json','Authorization':'Token ' + token}}).then(function (response) {
+                  console.log("response: ",response);
+                  if(response.status===201){
+                      setPractice(response.data.url);
+                  }else{
+                      console.log("Fail");
+                  }
+                  })
+              }
+          }else{
+              console.log("Fail");
+          }
+          })
+      } else{
+         if (practice===""){
+            const practice_data = {
+                workout:workout,
+                motion:motion.url
+              }
+             axios.post(server+"exercise/practices/",practice_data,{headers:{"Content-Type":'application/json','Authorization':'Token ' + token}}).then(function (response) {
+              console.log("response: ",response);
+              if(response.status===201){
+                  setPractice(response.data.url);
+              }else{
+                  console.log("Fail");
+              }
+              })
+          }
+      }
+
+    },[]);
     return(
         <div className="Working_Yoga">
             <AppHeader/>
             <Grid container direction="row" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ ml: 2, mt: 4, mr:2, mb: 4 }}>
-                <Grid container item direction="column" alignItems="flex-start" justifyContent="center" sx={{ width: 750 }}>
+                {/*<Grid container item direction="column" alignItems="flex-start" justifyContent="center" sx={{ width: 750 }}>
                     <Grid container item direction="row" alignItems="center" justifyContent="center" xs="auto">
                         <VideoCameraFrontIcon color={"error"} fontSize={"large"} sx={{mr: 2}}/>
                         <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5 }}>
@@ -50,7 +118,7 @@ function Working_Yoga(){
                                     </Box>
                                 </Box>
                                 <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, m: 2 }} >
-                                    Mountain
+                                    {data.name}
                                 </Typography>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.5, ml: 48 }} >
                                     >> Next: Triangle
@@ -75,7 +143,7 @@ function Working_Yoga(){
                             </Grid>
                         </Grid>
                     </Card>
-                </Grid>
+                </Grid>*/}
                 <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 7, width: 750 }}>
                     <Grid container item direction="row" alignItems="center" justifyContent="center" xs="auto">
                         <SelfImprovementIcon color={"error"} fontSize={"large"} sx={{mr: 2}}/>
@@ -106,14 +174,14 @@ function Working_Yoga(){
                                     </Box>
                                 </Box>
                                 <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, m: 2 }} >
-                                    Mountain
+                                    {motion.name}
                                 </Typography>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.5, ml: 48 }} >
                                     >> Next: Triangle
                                 </Typography>
                             </Grid>
                             <Grid item sx={{ml: 2, mt: 1}}>
-                                <img src={Mountain} alt={""} width={250}/>
+                                <img src={motion.demo} alt={""} width={250}/>
                             </Grid>
                         </Grid>
                     </Card>
