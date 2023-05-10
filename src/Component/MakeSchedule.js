@@ -1,0 +1,284 @@
+import React, {useEffect} from "react";
+import AppHeader from '../Tool/App_Header';
+import Mountain from "../Picture/Yoga_Mountain.png";
+import { date_Func,getDateIndex,getDateElement } from '../Tool/Date_Func';
+
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import Box from '@mui/material/Box';
+import Typography from "@mui/material/Typography";
+import Alert from '@mui/material/Alert';
+import Button from "@mui/material/Button";
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemSecondaryAction from '@mui/material/ListItemSecondaryAction';
+import ListItemText from '@mui/material/ListItemText';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions';
+import DialogTitle from '@mui/material/DialogTitle';
+import dayjs from 'dayjs';
+import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { StaticDateTimePicker } from '@mui/x-date-pickers/StaticDateTimePicker';
+import { DateTimeField } from '@mui/x-date-pickers/DateTimeField';
+import { TimeField } from '@mui/x-date-pickers/TimeField';
+
+import EditCalendarIcon from '@mui/icons-material/EditCalendar';
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import SendIcon from '@mui/icons-material/Send';
+
+import cookie from "react-cookies";
+
+const Theme = createTheme({
+  palette: {
+    primary: {
+      main: "#d32f2f",
+    },
+  },
+});
+
+function MakeSchedule(){
+    const today = new Date();
+    const [topage, setTopage] = React.useState("");
+    const [button_style_list, setButton_style_list] = React.useState({
+        Five_DAY: 'outlined',
+        Ten_DAY: 'outlined',
+        Three_WEEK: 'outlined',
+        One_MONTH: 'outlined',
+    });
+    const [date_config, setDate_config] = React.useState({
+        range: null,
+        step_two_disabled: true,
+        from_date: null
+    });
+    const [to_date, setTo_date] = React.useState(null)
+    const [date_list, setDate_list] = React.useState([])
+    const [dialog_open, setDialog_Open] = React.useState(false);
+    const [edit_time, setEdit_time] = React.useState(null);
+
+    const dialog_handleClickOpen = (date) => {
+        setEdit_time(dayjs(date));
+    };
+    const dialog_handleClose = () => {
+        setEdit_time(null);
+    };
+    const dialog_handleChange = () => {
+        var index = getDateIndex(new Date(date_config.from_date),new Date(edit_time))
+        const newArray = [...date_list];
+        newArray[index] = getDateElement(new Date(edit_time));
+        setDate_list(newArray);
+        setEdit_time(null);
+    };
+
+    useEffect(()=>{
+        if(edit_time !== null){
+            setDialog_Open(true);
+        }else{
+            setDialog_Open(false);
+        }
+    }, [edit_time]);
+    useEffect(()=>{
+        if(date_config.from_date !== null){
+            setTo_date(dayjs(date_config.from_date).add(date_config.range-1, 'day'));
+            setDate_list(date_Func(new Date(date_config.from_date), new Date(dayjs(date_config.from_date).add(date_config.range-1, 'day'))))
+            console.log(date_list)
+        }else{
+            setTo_date(null);
+            setDate_list([])
+        }
+    }, [date_config.range,date_config.from_date]);
+
+    if(topage==="") {
+        return (
+            <div className="MakeSchedulePage">
+                <AppHeader/>
+                <div className="main">
+                    <Grid container direction="column" alignItems="center" justifyContent="center" sx={{mb:3}}>
+                        <Card sx={{width:1300, mt: 4 }}>
+                            <Grid container item direction="row" alignItems="center" justifyContent="space-between" xs="auto">
+                                <Grid container item direction="row" alignItems="center" justifyContent="center" xs="auto">
+                                    <img src={Mountain} alt={"Mountain"} width="200" />
+                                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml:3}}>
+                                        <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:350 }}>
+                                            Mountain
+                                        </Typography>
+                                        <Typography variant="h5" sx={{ mt:5, width:350 }}>
+                                            10 mins
+                                        </Typography>
+                                    </Grid>
+                                </Grid>
+                                <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200 }}>
+                                        <LocalFireDepartmentIcon fontSize="large" color={"error"}/>
+                                        6.1K
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ mt:1, width: 200 }}>
+                                        CALORIES BURNT
+                                    </Typography>
+                                </Grid>
+                            </Grid>
+                        </Card>
+                        <Grid container item direction="row" alignItems="flex-start" justifyContent="center" className={"Step"} sx={{mt:5, width:1300}}>
+                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" className={"Step1_2"} sx={{width:600}}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5 }}>
+                                    Step 1: Select the Plan Period
+                                </Typography>
+                                <Grid container item direction="column" alignItems="center" justifyContent="flex-start" className={"Step1"}>
+                                    <Grid container item direction="row" alignItems="center" justifyContent="center" xs={"auto"} sx={{ mt:3}}>
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200}} variant={button_style_list.Five_DAY}
+                                            onClick={() => {
+                                                setButton_style_list({ Five_DAY:"contained", Ten_DAY: "outlined",Three_WEEK:"outlined", One_MONTH:"outlined" })
+                                                setDate_config({...date_config,range: 5, step_two_disabled: false, from_date: dayjs(today)})
+                                            }}
+                                        >
+                                            5 Days Plan
+                                        </Button>
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200}} variant={button_style_list.Ten_DAY}
+                                            onClick={() => {
+                                                setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "contained",Three_WEEK:"outlined", One_MONTH:"outlined" })
+                                                setDate_config({...date_config,range: 10, step_two_disabled: false, from_date: dayjs(today)})
+                                            }}
+                                        >
+                                            10 Days Plan
+                                        </Button>
+                                    </Grid>
+                                    <Grid container item direction="row" alignItems="center" justifyContent="center" sx={{mt: 2}}>
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200}} variant={button_style_list.Three_WEEK}
+                                            onClick={() => {
+                                                setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "outlined",Three_WEEK:"contained", One_MONTH:"outlined" })
+                                                setDate_config({...date_config,range: 21, step_two_disabled: false, from_date: dayjs(today)})
+                                            }}
+                                        >
+                                            3 Weeks Plan
+                                        </Button>
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200}} variant={button_style_list.One_MONTH}
+                                            onClick={() => {
+                                                setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "outlined",Three_WEEK:"outlined", One_MONTH:"contained" })
+                                                setDate_config({...date_config,range: 30, step_two_disabled: false, from_date: dayjs(today)})
+                                            }}
+                                        >
+                                            1 Month Plan
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, mt: 4 }}>
+                                    Step 2: Select the Date Range
+                                </Typography>
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <DemoContainer components={['DateRangePicker', 'DateRangePicker']}>
+                                        <Grid container item direction="row" alignItems="center" justifyContent="center" xs={"auto"}>
+                                            <DemoItem>
+                                                <ThemeProvider theme={Theme}>
+                                                    <StaticDateTimePicker
+                                                        color = "error"
+                                                        value={date_config.from_date}
+                                                        disabled = {date_config.step_two_disabled}
+                                                        orientation="landscape"
+                                                        slotProps={{
+                                                            toolbar: {hidden: true,},
+                                                            actionBar: {actions:[]},
+                                                        }}
+                                                        disablePast
+                                                        onChange={(newValue) =>
+                                                            setDate_config({...date_config, from_date: dayjs(newValue)})
+                                                        }
+                                                    />
+                                                </ThemeProvider>
+                                            </DemoItem>
+                                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs={"auto"}>
+                                                <DemoItem>
+                                                    <DateTimeField 
+                                                        color = "error"
+                                                        label={"From Date"}
+                                                        value={date_config.from_date}
+                                                        readOnly
+                                                        format="L HH:mm"
+                                                    />
+                                                </DemoItem>
+                                                <DemoItem >
+                                                    <DateTimeField 
+                                                        color = "error"
+                                                        label={"To Date"}
+                                                        sx = {{mt: 3}}
+                                                        value = {to_date}
+                                                        readOnly
+                                                        format="L HH:mm"
+                                                    />
+                                                </DemoItem>
+                                            </Grid>
+                                        </Grid>
+                                    </DemoContainer>
+                                </LocalizationProvider>
+                            </Grid>
+                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" className={"Step1_2"} sx={{ml: 5, width:600}}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5 }}>
+                                    Step 3: Confirm the Schedule and Send the Invitation
+                                </Typography>
+                                {date_list.length === 0
+                                    ? <Alert severity="info" sx={{width: 580, mt:2}} color={"error"}>You haven't select the Plan Period!</Alert>
+                                    : <Box sx={{height: 580, width: 600, mt:2}}>
+                                        <List sx={{maxHeight: 580, overflow: 'auto'}}>
+                                            {date_list.map((date) => (
+                                                <Card sx={{width: 580, mb: 2}}>
+                                                    <ListItem component="div" disablePadding key={date} sx={{ml: 2}}>
+                                                        <ListItemText>
+                                                            <Typography variant="h6"
+                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5}}>
+                                                                One Week Mountain
+                                                            </Typography>
+                                                            <Typography variant="h7"
+                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1}}
+                                                                        color={"error"}>
+                                                                {date}
+                                                            </Typography>
+                                                        </ListItemText>
+                                                        <ListItemSecondaryAction sx={{mr:4}}>
+                                                            <IconButton edge={"end"} onClick={()=>dialog_handleClickOpen(date)}>
+                                                                <EditCalendarIcon/>
+                                                            </IconButton>
+                                                        </ListItemSecondaryAction>
+                                                    </ListItem>
+                                                </Card>
+                                            ))}
+                                        </List>
+                                        <Dialog open={dialog_open} onClose={dialog_handleClose}>
+                                            <DialogTitle>
+                                                {"Edit the start time of "+new Date(edit_time).getFullYear()+"-"+(new Date(edit_time).getMonth() + 1)+"-"+new Date(edit_time).getDate()}
+                                            </DialogTitle>
+                                            <DialogContent>
+                                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                    <DemoContainer components={["TimeField"]}>
+                                                        <TimeField label="From Time"
+                                                                   color = "error"
+                                                                   value={edit_time}
+                                                                   onChange={(newValue) => setEdit_time(newValue)}
+                                                                   disablePast
+                                                                   format="HH:mm"
+                                                        />
+                                                    </DemoContainer>
+                                                </LocalizationProvider>
+                                            </DialogContent>
+                                            <DialogActions>
+                                                <Button onClick={()=>dialog_handleClose()} color={"error"}>Cancel</Button>
+                                                <Button onClick={()=>dialog_handleChange()} color={"error"}>OK</Button>
+                                            </DialogActions>
+                                        </Dialog>
+                                    </Box>
+                                }
+                            </Grid>
+                        </Grid>
+                        <Button variant="contained" color="error" endIcon={<SendIcon size="large" />}  sx={{fontSize: 'h5.fontSize', width: 200, mt: 6}}>
+                            Send
+                        </Button>
+                    </Grid>
+                </div>
+            </div>
+        );
+    }
+}
+
+export default MakeSchedule;
