@@ -26,10 +26,10 @@ function Yoga(){
     const [topage, setTopage] = React.useState("");
 
     useEffect(()=>{
-        if(!cookie.load('user_id')){
-            history.push({pathname:"/SignIn",state:{}});
-            setTopage("SignIn")
-        }
+        // if(!cookie.load('user_id')){
+        //     history.push({pathname:"/SignIn",state:{}});
+        //     setTopage("SignIn")
+        // }
     })
 
     if(topage===""){
