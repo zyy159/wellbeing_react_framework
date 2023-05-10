@@ -33,10 +33,10 @@ const server = 'http://127.0.0.1:8000';
 function Home() {
     const [topage, setTopage] = React.useState("");
     useEffect(()=>{
-        if(!cookie.load('user_id')){
-            history.push({pathname:"/SignIn",state:{}});
-            setTopage("SignIn")
-        }
+        // if(!cookie.load('user_id')){
+        //     history.push({pathname:"/SignIn",state:{}});
+        //     setTopage("SignIn")
+        // }
     })
 
     if(topage==="") {
