@@ -15,6 +15,7 @@ import cookie from "react-cookies";
 import {Navigate} from "react-router";
 
 import axios from 'axios';
+import MakeSchedule from "./MakeSchedule";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'http://127.0.0.1:8000';
@@ -22,11 +23,15 @@ const server = 'http://127.0.0.1:8000';
 function ExerciseOption() {
     const [topage, setTopage] = React.useState("");
     useEffect(()=>{
-        if(!cookie.load('user_id')){
-            history.push({pathname:"/SignIn",state:{}});
-            setTopage("SignIn")
-        }
+        // if(!cookie.load('user_id')){
+        //     history.push({pathname:"/SignIn",state:{}});
+        //     setTopage("SignIn")
+        // }
     })
+    const Moutain_Go_Button = () => {
+        history.push({pathname:"/MakeSchedule",state:{}});
+        setTopage("MakeSchedule");
+    };
     if(topage===""){
         return(
             <div className="ExerciseOption">
@@ -58,7 +63,7 @@ function ExerciseOption() {
                                         CALORIES BURNT
                                     </Typography>
                                 </Grid>
-                                <Button variant="contained" sx={{ ml: 2, mr: 2, fontSize: 'h5.fontSize'}} size="large" color="error">
+                                <Button variant="contained" sx={{ ml: 2, mr: 2, fontSize: 'h5.fontSize'}} size="large" color="error" onClick={Moutain_Go_Button}>
                                     Go
                                     <BoltIcon fontSize="large" />
                                 </Button>
@@ -105,6 +110,8 @@ function ExerciseOption() {
         );
     }else if(topage==="SignIn"){
         return <Navigate to="/SignIn" replace={true} />
+    }else if(topage==="MakeSchedule"){
+        return <Navigate to="/MakeSchedule" replace={true} />
     }
 }
 
