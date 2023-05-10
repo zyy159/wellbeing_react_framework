@@ -1,7 +1,7 @@
 import AppHeader from '../Tool/App_Header';
 import Footer from '../Tool/Footer';
-//import React from "react";
-import sport_video from './Sport_video.js';
+import React,{useState, useEffect} from "react";
+import sport_video from '../Tool/Sport_video.js';
 import Calories from '../Picture/Calories_Chart.png';
 import Mountain from '../Picture/Yoga_Ai.png'
 import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
@@ -13,7 +13,6 @@ import Typography from "@mui/material/Typography";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import { useLocation } from 'react-router-dom';
-import React, {useState, useEffect} from "react";
 
 import cookie from "react-cookies";
 
