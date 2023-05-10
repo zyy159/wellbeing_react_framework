@@ -11,6 +11,7 @@ const Yoga = asyncComponent(() => import("./Component/QuickStart_Yoga"));
 const Yoga2 = asyncComponent(() => import("./Component/QuickStart_Yoga2"));
 const ExerciseOption = asyncComponent(() => import("./Component/ExerciseOption"));
 const Working_Yoga = asyncComponent(() => import("./Component/Working_Yoga"));
+const MakeSchedule = asyncComponent(() => import("./Component/MakeSchedule"));
 
 class App extends React.Component{
   render() {
@@ -24,6 +25,7 @@ class App extends React.Component{
           <Route path="/Yoga2" element={<Yoga2/>} />
           <Route path="/ExerciseOption" element={<ExerciseOption/>} />
           <Route path="/Working_Yoga" element={<Working_Yoga/>} />
+          <Route path="/MakeSchedule" element={<MakeSchedule/>} />
         </Routes>
       </Router>
     );
