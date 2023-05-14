@@ -67,9 +67,6 @@ function SignUp() {
       alert("The Email Security Code is incorrect!");
       setVerified(false)
       handleRefresh();
-    } else if (/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/.test(values.email) === false) {
-       alert("Please input the correct Email.");
-       handleRefresh();
     } else if (/^.*(?=.{8,16})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$/.test(values.password) === false) {
       if(values.password.length < 8){
         alert("The password is too short. Please input new password.");
