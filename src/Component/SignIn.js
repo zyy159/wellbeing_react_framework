@@ -19,6 +19,7 @@ import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedIcon from '@mui/icons-material/Verified';
 
 import cookie from 'react-cookies';
+import md5 from 'js-md5';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
@@ -55,9 +56,10 @@ function SignIn() {
       handleRefresh();
       alert("Please input the correct Verification Code")
     }
+    let encrypt_pwd = md5(values.password);
     let data = new FormData();
     data.append("username",values.username);
-    data.append("password",values.password);
+    data.append("password",encrypt_pwd);
     cookie.save("user_id",values.username);
     history.push({pathname:"/Home",state:{}});
     setTopage("Home");
