@@ -48,6 +48,10 @@ function SignIn() {
   const handleCheck = (event) => {
     setChecked(event.target.checked);
   };
+  const Reset_Button = () => {
+    history.push({pathname:"/ResetPassword",state:{}});
+    setTopage("ResetPassword");
+  }
   const SignIn_Button = () => {
     if(values.password==="" || values.username==="" || values.verification_code===""){
       alert("Please input the required textfield.")
@@ -153,6 +157,11 @@ function SignIn() {
               >
                 Don't have an account? Sign Up
               </Link>
+              <Link component="button" underline="always"
+                onClick={Reset_Button}
+              >
+                Forgot the password? Click here
+              </Link>
             </Grid>
           </Grid>
         </div>
@@ -162,6 +171,8 @@ function SignIn() {
     return <Navigate to="/SignUp" replace={true} />
   }else if(topage==="Home"){
     return <Navigate to="/Home" replace={true} />
+  }else if(topage==="ResetPassword"){
+    return <Navigate to="/ResetPassword" replace={true} />
   }
 }
 
