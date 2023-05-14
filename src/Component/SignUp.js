@@ -18,8 +18,11 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import EmailIcon from '@mui/icons-material/Email';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import PasswordIcon from '@mui/icons-material/Password';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import cookie from "react-cookies";
+import md5 from 'js-md5';
+import emailjs from '@emailjs/browser';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
@@ -29,13 +32,15 @@ function SignUp() {
   const  [values, setValues] = React.useState({
     username: '',
     email: '',
+    email_security_code: '',
     password: '',
     password_verfy: '',
     verification_code: '',
   });
   const [captcha, setCaptcha] = React.useState("");
   const [checked, setChecked] = React.useState(false);
-  const [topage, setTopage] = React.useState("")
+  const [topage, setTopage] = React.useState("");
+  const [verified, setVerified] = React.useState(false);
 
   const handleChange = (prop) => (event) =>{
     setValues({ ...values, [prop]: event.target.value });
@@ -52,11 +57,15 @@ function SignUp() {
     setChecked(event.target.checked);
   };
   const SignUp_Button = () => {
-    if (values.username === "" || values.email === "" || values.password === "" || values.password_verfy === "" || values.verification_code === "") {
+    if (values.email_security_code === "" || values.password === "" || values.password_verfy === "" || values.verification_code === "") {
       alert("Please input the required textfield.");
       handleRefresh();
     } else if (checked===false){
       alert("Please read and agree to Wellbeing Gallery Privacy and Security Policy and Terms of Use.");
+      handleRefresh();
+    } else if (values.email_security_code !== cookie.load('security_code')) {
+      alert("The Email Security Code is incorrect!");
+      setVerified(false)
       handleRefresh();
     } else if (/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/.test(values.email) === false) {
        alert("Please input the correct Email.");
@@ -81,11 +90,11 @@ function SignUp() {
       alert("Please input the correct Verification Code");
       handleRefresh();
     }
+    let encrypt_pwd = md5(values.password);
     let data = new FormData();
     data.append("username",values.username);
     data.append("email",values.email);
-    data.append("password1",values.password);
-    data.append("password2",values.password_verfy);
+    data.append("password1",encrypt_pwd);
     axios.post(server+"/rest-auth/registration/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
       console.log("response: ",response);
         if(response.status===201){
@@ -96,6 +105,31 @@ function SignUp() {
           console.log("Fail");
         }
     })
+  }
+  const SignUp_Verify_Email = () => {
+    setVerified(true)
+    if (values.username === "" || values.email === ""){
+      alert("Please input the Username and Email.");
+      handleRefresh();
+    } else if (/^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/.test(values.email) === false) {
+      alert("Please input the correct Email.");
+      handleRefresh();
+    }
+    var code = '' + (parseInt(Math.random()*1000000)+1000000);
+    code = code.substring(1, 7);
+    cookie.save("security_code",code);
+    console.log(code);
+    emailjs.send("service_jvzt6uc","template_qu1hm1r", {
+      to_name: values.username,
+      to_email: values.email,
+      code: code,
+    },"NwUcEIZUuGjkuoiEf").then((result) => {
+      console.log('SUCCESS!', result.text);
+    }, (error) => {
+      alert("The verification mail fail to be sent!")
+      setVerified(false)
+      console.log('FAILED...', error.text);
+    });
   }
   useEffect(()=>{
     if(cookie.load('user_id')){
@@ -140,6 +174,26 @@ function SignUp() {
                      ),
                    }}
                 />
+                <Grid container item justifyContent="center" alignItems="flex-start" direction="row" sx = {{ m:2 }}>
+                  <TextField label="Email Security Code" className="Text_Email_Security_Code"
+                     sx = {{ width:"52ch" }}  variant={"outlined"} color="error" required
+                     helperText="Please check the coming mail in your mailbox and then fill in."
+                     onChange={handleChange('email_security_code')}
+                     InputProps={{
+                       startAdornment: (
+                         <InputAdornment position="start" >
+                           <VerifiedUserIcon />
+                         </InputAdornment>
+                       ),
+                     }}
+                  />
+                  <Button className="Button_Verify_Email"
+                    variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"15ch", ml:2, mt:0.5}}
+                    onClick={SignUp_Verify_Email} disabled={verified}
+                  >
+                    Verify Email
+                  </Button>
+                </Grid>
                 <TextField label="Password" className="Text_Password"
                    sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
                    helperText="The password should contain 8 - 16 characters, which is a combination of digit, uppercase letters and lowercase letters."
