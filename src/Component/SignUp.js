@@ -94,7 +94,7 @@ function SignUp() {
     let data = new FormData();
     data.append("username",values.username);
     data.append("email",values.email);
-    data.append("password1",encrypt_pwd);
+    data.append("password",encrypt_pwd);
     axios.post(server+"/rest-auth/registration/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
       console.log("response: ",response);
         if(response.status===201){
