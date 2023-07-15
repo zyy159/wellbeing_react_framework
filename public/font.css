@@ -1,0 +1,14 @@
+@font-face {
+    font-family: consola;
+    src: url('./fonts/consola.ttf');
+}
+@font-face {
+    font-family: "MSYH";
+    src: url('./fonts/MSYH.TTC');
+}
+@font-face {
+    font-family: "HWE";
+    src: url('./fonts/Handwritten-English-2.ttf');
+}
+
+
