@@ -28,21 +28,38 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://127.0.0.1:8000';
+const server = 'http://47.97.104.79/';
 
 function Home() {
-    const [topage, setTopage] = React.useState("");
-    useEffect(()=>{
-        // if(!cookie.load('user_id')){
-        //     history.push({pathname:"/SignIn",state:{}});
-        //     setTopage("SignIn")
-        // }
-    })
+    const [topage, setTopage] = React.useState("Home");
+    const [wellbeing_level, setWellbeing_level] = React.useState(0);
+    const [total_time, setTotal_time] = React.useState("");
+    const [total_score, setTotal_score] = React.useState(0);
 
-    if(topage==="") {
+    useEffect(()=>{
+        if(!cookie.load('user_id')){
+            history.push({pathname:"/SignIn",state:{}});
+            setTopage("SignIn")
+        }else{
+            const token = cookie.load("token")
+            axios.get(server+"exercise/usersummary/",{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
+                if(response.status===200){
+                    cookie.save("email",response.data["email"]);
+                    setWellbeing_level(response.data["wellbeing_level"])
+                    setTotal_score(response.data["total_score"])
+                    setTotal_time(response.data["total_time"])
+                    console.log(wellbeing_level)
+                }else{
+                    console.log("Fail");
+                }
+            })
+        }
+    },[])
+
+    if(topage==="Home") {
         return (
             <div className="HomePage">
-                <AppHeader/>
+                <AppHeader topage={topage} setTopage={setTopage}/>
                 <div className="main">
                     <Grid container direction="column" alignItems="center" justifyContent="center" xs="auto"  sx={{ml: 2, mt: 2, mr: 2, mb: 4}}>
                         <Grid container item direction="row" justifyContent="center" alignItems="flex-end"
@@ -53,36 +70,36 @@ function Home() {
                                     <Grid container item direction="row" justifyContent="center" alignItems="center"
                                           xs="auto" sx={{mb: 1}}>
                                         <Avatar sx={{bgcolor: red[500], width: 56, height: 56}} alt="Stanven"/>
-                                        <Typography variant="h5" sx={{ml: 2, fontWeight: 'bold', lineHeight: 1.5}}>
+                                        <Typography variant="h5" sx={{ml: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                             Hi, {cookie.load('user_id')}! Get started now?
                                         </Typography>
                                     </Grid>
-                                    <Grid container item direction="row" justifyContent="center" alignItems="center"
-                                          xs="auto" sx={{mt: 1}}>
+                                    <Grid container item direction="row" justifyContent="space-between" alignItems="center" sx={{mt: 1}}>
                                         <Grid container item direction="column" justifyContent="center"
-                                              alignItems="center" xs="auto" sx={{mr: 3}}>
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5}}>
-                                                0
+                                              alignItems="center" xs="auto" sx={{mr: 3}}
+                                        >
+                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                                                {total_time}
                                             </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5}}>
+                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                 Exercise Time
                                             </Typography>
                                         </Grid>
                                         <Grid container item direction="column" justifyContent="center"
                                               alignItems="center" xs="auto" sx={{mr: 3}}>
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5}}>
-                                                0
+                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                                                {total_score}
                                             </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5}}>
+                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                 Total Score Points
                                             </Typography>
                                         </Grid>
                                         <Grid container item direction="column" justifyContent="center"
                                               alignItems="center" xs="auto" sx={{mr: 3}}>
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5}}>
-                                                Lv.0
+                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                                                Lv.{wellbeing_level}
                                             </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5}}>
+                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                 Wellbeing Level
                                             </Typography>
                                         </Grid>
@@ -90,7 +107,7 @@ function Home() {
                                     <Grid container direction="column" alignItems="center" justifyContent="center"
                                           sx={{mt: 1}}>
                                         <Card sx={{width: 500, height: 330}}>
-                                            <Typography variant="h5" sx={{m: 2, fontWeight: 'bold', lineHeight: 1.5}}>
+                                            <Typography variant="h5" sx={{m: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                 Upcoming Plans
                                             </Typography>
                                             <Grid container item direction="row" justifyContent="flex-start"
@@ -100,16 +117,20 @@ function Home() {
                                                 </Grid>
                                                 <Grid container item xs={6} direction="column" alignItems="flex-start"
                                                       justifyContent="center" xs="auto" sx={{ml: 2}}>
-                                                    <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5}}>
+                                                    <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                         Stand Up for a While
                                                     </Typography>
-                                                    <Typography variant="body1" sx={{mt: 1}}>
+                                                    <Typography variant="body1" sx={{mt: 1, fontFamily: 'HWE'}}>
                                                         The 2nd/5 days 5 mins
                                                     </Typography>
                                                 </Grid>
-                                                <Grid item sx={{ml: 14}}>
-                                                    <Button variant="contained" sx={{fontSize: 'h6.fontSize'}}
-                                                            color="error">
+                                                <Grid item sx={{ml: 12}}>
+                                                    <Button variant="contained" sx={{fontSize: 'h6.fontSize', fontFamily: 'HWE'}} color="error"
+                                                        onClick={() => {
+                                                            history.push({pathname: "/Working_Yoga", state: {}});
+                                                            setTopage("Working_Yoga")
+                                                        }}
+                                                    >
                                                         Go
                                                         <BoltIcon variant="small"/>
                                                     </Button>
@@ -123,16 +144,20 @@ function Home() {
                                                 </Grid>
                                                 <Grid container item xs={6} direction="column" alignItems="flex-start"
                                                       justifyContent="center" xs="auto" sx={{ml: 2}}>
-                                                    <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5}}>
+                                                    <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                         One Week Yoga
                                                     </Typography>
-                                                    <Typography variant="body1" sx={{mt: 1}}>
+                                                    <Typography variant="body1" sx={{mt: 1, fontFamily: 'HWE'}}>
                                                         The 2nd/5 days 5 mins
                                                     </Typography>
                                                 </Grid>
-                                                <Grid item sx={{ml: 14}}>
-                                                    <Button variant="contained" sx={{fontSize: 'h6.fontSize'}}
-                                                            color="error">
+                                                <Grid item sx={{ml: 12}}>
+                                                    <Button variant="contained" sx={{fontSize: 'h6.fontSize', fontFamily: 'HWE'}} color="error"
+                                                        onClick={() => {
+                                                            history.push({pathname: "/Working_Yoga", state: {}});
+                                                            setTopage("Working_Yoga")
+                                                        }}
+                                                    >
                                                         Go
                                                         <BoltIcon variant="small"/>
                                                     </Button>
@@ -141,7 +166,7 @@ function Home() {
                                             <Divider variant="middle"/>
                                             <Grid container item direction="row" justifyContent="center"
                                                   alignItems="center" xs="auto" sx={{m: 2}}>
-                                                <Button color={"error"} sx={{fontWeight: 'bold'}}
+                                                <Button color={"error"} sx={{fontWeight: 'bold', fontFamily: 'HWE'}}
                                                     onClick={() => {
                                                         history.push({pathname: "/ExerciseOption", state: {}});
                                                         setTopage("ExerciseOption")
@@ -173,12 +198,12 @@ function Home() {
                                         <Grid container direction="row" justifyContent="flex-start" alignItems="center"
                                               xs="auto">
                                             <FastForwardSharpIcon/>
-                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5}}>
+                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                 Quick Start
                                             </Typography>
                                         </Grid>
                                     </Button>
-                                    <Typography variant="subtitle1" sx={{mt: 1}}>
+                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'HWE'}}>
                                         Start your journey with a 2 mins Yoga!!!
                                     </Typography>
                                 </CardContent>
@@ -186,14 +211,16 @@ function Home() {
                             <Card sx={{ml: 2}}>
                                 <img src={Scheme} className="Scheme"/>
                                 <CardContent>
-                                    <Grid container direction="row" justifyContent="flex-start" alignItems="center"
-                                          xs="auto">
-                                        <EventAvailableIcon/>
-                                        <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5}}>
-                                            Join our Scheme
-                                        </Typography>
-                                    </Grid>
-                                    <Typography variant="subtitle1" sx={{mt: 1}}>
+                                    <Button variant={"text"} color="error">
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center"
+                                              xs="auto">
+                                            <EventAvailableIcon/>
+                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                                               Join our Scheme
+                                            </Typography>
+                                        </Grid>
+                                    </Button>
+                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'HWE'}}>
                                         Join us with a Scheme!!!
                                     </Typography>
                                 </CardContent>
@@ -201,14 +228,16 @@ function Home() {
                             <Card sx={{ml: 2}}>
                                 <img src={Running} className="Running"/>
                                 <CardContent>
-                                    <Grid container direction="row" justifyContent="flex-start" alignItems="center"
-                                          xs="auto">
-                                        <Diversity3SharpIcon/>
-                                        <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5}}>
-                                            Friends
-                                        </Typography>
-                                    </Grid>
-                                    <Typography variant="subtitle1" sx={{mt: 1}}>
+                                    <Button variant={"text"} color="error">
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center"
+                                              xs="auto">
+                                            <Diversity3SharpIcon/>
+                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                                               Join our Scheme
+                                            </Typography>
+                                        </Grid>
+                                    </Button>
+                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'HWE'}}>
                                         Find your friends and get started together!!!
                                     </Typography>
                                 </CardContent>
@@ -216,7 +245,6 @@ function Home() {
                         </Grid>
                     </Grid>
                 </div>
-                <Footer/>
             </div>
         );
     }else if(topage==="Yoga"){
@@ -225,6 +253,8 @@ function Home() {
         return <Navigate to="/ExerciseOption" replace={true} />
     }else if(topage==="SignIn"){
         return <Navigate to="/SignIn" replace={true} />
+    }else if(topage==="Working_Yoga"){
+        return <Navigate to="/Working_Yoga" replace={true} />
     }
 }
 
