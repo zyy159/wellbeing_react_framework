@@ -7,7 +7,7 @@ export const date_Func=(startTime, endTime) =>{
         var day = startTime.getDate()
         var hour = startTime.getHours()
         var minute = startTime.getMinutes()
-        all_date_list[i] = year + '-' + month + '-' + day + ' ' + hour + ":" + minute
+        all_date_list[i] = year + '-' + month + '-' + day + ' ' + hour + ":" + minute + ":00"
         startTime.setDate(startTime.getDate() + 1)
         i += 1
     }
@@ -35,6 +35,16 @@ export const getDateElement=(Datetime) =>{
     var hour = Datetime.getHours()
     var minute = Datetime.getMinutes()
 
-    var DateElement = year + '-' + month + '-' + day + ' ' + hour + ":" + minute
+    var DateElement = year + '-' + month + '-' + day + ' ' + hour + ":" + minute + ":00"
     return DateElement
 };
+
+export const getEndDatetime=(StartDatetime, duration) =>{
+    var year = StartDatetime.getFullYear()
+    var month = StartDatetime.getMonth() + 1
+    var day = StartDatetime.getDate()
+    var hour = StartDatetime.getHours()
+    var minute = StartDatetime.getMinutes() + duration
+    var EndDatetime = year + '-' + month + '-' + day + ' ' + hour + ":" + minute
+    return EndDatetime
+}
