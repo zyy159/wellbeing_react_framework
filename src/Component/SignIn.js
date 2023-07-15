@@ -3,6 +3,7 @@ import history from "../Tool/history";
 import logo from '../Picture/HSBC-LOGO.png';
 import background_pic from '../Picture/Signup Background.png';
 
+import InputAdornment from '@mui/material/InputAdornment';
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
@@ -13,7 +14,6 @@ import Link from '@mui/material/Link';
 import AppHeader from '../Tool/App_Header';
 import Captcha from 'react-captcha-code';
 import {Navigate} from "react-router";
-import InputAdornment from '@mui/material/InputAdornment';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -23,7 +23,7 @@ import md5 from 'js-md5';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://localhost:80/';
+const server = 'http://47.97.104.79/';
 
 function SignIn() {
   const  [values, setValues] = React.useState({
@@ -57,34 +57,31 @@ function SignIn() {
       alert("Please input the required textfield.")
       handleRefresh();
     } else if(captcha !== values.verification_code){
-      handleRefresh();
       alert("Please input the correct Verification Code")
+      handleRefresh();
+    } else{
+      let data = new FormData();
+      data.append("username",values.username);
+      data.append("email","");
+      data.append("password",values.password);
+      axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
+        cookie.save("user_id",values.username);
+        cookie.save("token",response.data.key);
+        history.push({pathname:"/Home",state:{}});
+        setTopage("Home");
+      }).catch(err => {
+        console.log(err)
+        alert("Fail to login! Please retry!");
+        handleRefresh();
+      })
     }
-    let encrypt_pwd = md5(values.password);
-    let data = new FormData();
-    data.append("username",values.username);
-    data.append("password",encrypt_pwd);
-    cookie.save("user_id",values.username);
-    history.push({pathname:"/Home",state:{}});
-    setTopage("Home");
-    axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json','Authorization':'Token 592f3167fb0acffd429da1ac775b458bd790ac28'}}).then(function (response) {
-      console.log("response: ",response);
-        if(response.status===200){
-          cookie.save("user_id",values.username);
-          cookie.save("token",response.data.key);
-          history.push({pathname:"/Home",state:{}});
-          setTopage("Home");
-        }else{
-          console.log("Fail");
-        }
-    })
   }
   useEffect(()=>{
     if(cookie.load('user_id')){
       history.push({pathname:"/Home",state:{}});
       setTopage("Home")
     }
-  })
+  },[])
   if(topage===""){
     return (
       <div className="Signup">
@@ -92,14 +89,14 @@ function SignIn() {
         <div className="Main">
           <Grid container direction="column" justifyContent="center" alignItems="center" xs="auto" sx={{ mb: 2 }}>
             <img src={background_pic} className="background_pic" alt="" width="100%"/>
-            <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mt: 2 }}>
+            <Grid container item justifyContent="center" alignItems="center" xs="auto">
               <img src={logo} className="App_Logo" alt="logo" />
-              <Typography variant="h4" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5 }}>
+              <Typography variant="h3" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE' }}>
                 Wellbeing Gallery
               </Typography>
               <Grid container item justifyContent="center" alignItems="center" direction="column">
                 <TextField label="Username" className="Text_Username"
-                   sx = {{ width:"73ch", m:3 }}  variant={"outlined"} color="error" required
+                   sx = {{ width:"73ch", m:3, fontFamily: 'HWE' }}  variant={"outlined"} color="error" required
                    onChange={handleChange('username')}
                    InputProps={{
                      startAdornment: (
@@ -110,7 +107,7 @@ function SignIn() {
                    }}
                 />
                 <TextField label="Password" className="Text_Password"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="password" required
                    onChange={handleChange('password')}
                    InputProps={{
                      startAdornment: (
@@ -122,7 +119,7 @@ function SignIn() {
                 />
                 <Grid container item justifyContent="center" alignItems="center" direction="row">
                   <TextField label="Verfication Code" className="Text_Verfication_code"
-                    sx = {{ width:"61ch", m:2 }}  variant={"outlined"} color="error" required
+                    sx = {{ width:"61ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" required
                     onChange={handleChange('verification_code')}
                     InputProps={{
                      startAdornment: (
@@ -131,6 +128,11 @@ function SignIn() {
                        </InputAdornment>
                      ),
                     }}
+                    onKeyDown={(e) => {
+                      if(e.code === 'Enter'){
+                        {SignIn_Button()}
+                      }
+                    }}
                   />
                   <Captcha charNum={4} onChange={handleClick} ref={captchaRef}/>
                 </Grid>
@@ -138,7 +140,7 @@ function SignIn() {
             </Grid>
             <Grid container item justifyContent="center" alignItems="center" direction="column" xs="auto">
               <Button className="Button_Signup"
-                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch"}}
+                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch", fontFamily: 'HWE'}}
                 onClick={SignIn_Button}
               >
                 Sign In
@@ -149,7 +151,7 @@ function SignIn() {
                 />
                 } label="Keep me signed in for the next 7 days."
               />
-              <Link component="button" underline="always"
+              <Link component="button" underline="always" sx={{fontFamily: 'HWE'}}
                 onClick={() => {
                   history.push({pathname:"/SignUp",state:{}});
                   setTopage("SignUp")
@@ -157,7 +159,7 @@ function SignIn() {
               >
                 Don't have an account? Sign Up
               </Link>
-              <Link component="button" underline="always"
+              <Link component="button" underline="always" sx={{fontFamily: 'HWE'}}
                 onClick={Reset_Button}
               >
                 Forgot the password? Click here
