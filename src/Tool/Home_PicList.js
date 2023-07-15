@@ -8,29 +8,34 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import SwipeableViews from 'react-swipeable-views';
 import {autoPlay} from "react-swipeable-views-utils";
 
+import Rocket from '../Picture/Home_Rocket.png';
+import Yoga from '../Picture/Home_Yoga_top.png';
+import Running from '../Picture/Home_Running_top.png';
+import Scheme from '../Picture/Home_Scheme_top.png'
+
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
-const images = [
-    {
-        label: "Rocket",
-        imgPath: "https://i.hd-r.cn/4863142b2e1b4fc97885b5df0c2c2559.png" ,
-    },
-    {
-        label: "Yoga",
-        imgPath: "https://i.hd-r.cn/750c60901a901ecf71a27e576f8e0a9d.png" ,
-    },
-    {
-        label: "Running",
-        imgPath: "https://i.hd-r.cn/82c5b8ee83861cf30a345913e23d07a9.png" ,
-    },
-    {
-        label: "Scheme",
-        imgPath: "https://i.hd-r.cn/d9652918fa148a5d3000887c488e57f1.png" ,
-    },
-]
 
 function PicList() {
     const theme = useTheme();
     const [activeStep, setActiveStep] = React.useState(0)
+    const images = [
+        {
+            label: "Rocket",
+            imgPath: Rocket,
+        },
+        {
+            label: "Yoga",
+            imgPath: Yoga ,
+        },
+        {
+            label: "Running",
+            imgPath: Running ,
+        },
+        {
+            label: "Scheme",
+            imgPath: Scheme,
+        },
+    ]
     const maxSteps = images.length;
 
     const handleNext = () =>{
@@ -56,7 +61,7 @@ function PicList() {
                 {images.map((step,index) => (
                     <div key={step.label}>
                     {Math.abs(activeStep - index) <= 2 ? (
-                        <img width = "100%" Height = "450"
+                        <img width = "100%" height = "450"
                             src={step.imgPath}
                             alt={step.label}
                         />)
@@ -69,7 +74,7 @@ function PicList() {
                 steps={maxSteps}
                 activeStep={activeStep}
                 backButton={
-                    <Button size="small" onClick={handleBack} color="error" disabled={activeStep === 0} >
+                    <Button size="small" onClick={handleBack} color="error" disabled={activeStep === 0} sx={{ fontFamily: 'MSYH' }}>
                         {theme.direction === "rt1" ? (
                             <KeyboardArrowRight/>
                         ) : (
@@ -79,7 +84,7 @@ function PicList() {
                     </Button>
                 }
                 nextButton={
-                    <Button size="small" onClick={handleNext} color="error" disabled={activeStep === maxSteps - 1} >
+                    <Button size="small" onClick={handleNext} color="error" disabled={activeStep === maxSteps - 1} sx={{ fontFamily: 'MSYH' }}>
                         {theme.direction === "rt1" ? (
                             <KeyboardArrowLeft/>
                         ) : (
