@@ -21,12 +21,12 @@ import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 import cookie from "react-cookies";
-import md5 from 'js-md5';
+// import md5 from 'js-md5';
 import emailjs from '@emailjs/browser';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://localhost:80/';
+const server = 'http://47.97.104.79/';
 
 function SignUp() {
   const  [values, setValues] = React.useState({
@@ -44,7 +44,6 @@ function SignUp() {
 
   const handleChange = (prop) => (event) =>{
     setValues({ ...values, [prop]: event.target.value });
-    console.log(values)
   };
   const handleClick = useCallback((code) => {
     setCaptcha(code)
@@ -60,7 +59,7 @@ function SignUp() {
     if (values.email_security_code === "" || values.password === "" || values.password_verfy === "" || values.verification_code === "") {
       alert("Please input the required textfield.");
       handleRefresh();
-    } else if (checked===false){
+    } else if (checked === false) {
       alert("Please read and agree to Wellbeing Gallery Privacy and Security Policy and Terms of Use.");
       handleRefresh();
     } else if (values.email_security_code !== cookie.load('security_code')) {
@@ -83,24 +82,24 @@ function SignUp() {
     } else if (values.password !== values.password_verfy){
       alert("The passwords you input don't match.");
       handleRefresh();
-    }else if(captcha !== values.verification_code){
+    } else if(captcha !== values.verification_code){
       alert("Please input the correct Verification Code");
       handleRefresh();
     }
-    let encrypt_pwd = md5(values.password);
     let data = new FormData();
     data.append("username",values.username);
     data.append("email",values.email);
-    data.append("password",encrypt_pwd);
-    axios.post(server+"/rest-auth/registration/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
-      console.log("response: ",response);
-        if(response.status===201){
-          cookie.save("user_id",values.username);
-          history.push({pathname:"/Home",state:{}});
-          setTopage("Home");
-        }else{
-          console.log("Fail");
-        }
+    data.append("password1",values.password);
+    data.append("password2",values.password_verfy);
+    axios.post(server+"rest-auth/registration/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
+      cookie.save("user_id",values.username);
+      cookie.save("token",response.data.key);
+      history.push({pathname:"/Home",state:{}});
+      setTopage("Home");
+    }).catch(err => {
+      console.log(err)
+      alert("Fail to register! Please retry!");
+      handleRefresh();
     })
   }
   const SignUp_Verify_Email = () => {
@@ -115,7 +114,6 @@ function SignUp() {
     var code = '' + (parseInt(Math.random()*1000000)+1000000);
     code = code.substring(1, 7);
     cookie.save("security_code",code);
-    console.log(code);
     emailjs.send("service_jvzt6uc","template_qu1hm1r", {
       to_name: values.username,
       to_email: values.email,
@@ -126,6 +124,7 @@ function SignUp() {
       alert("The verification mail fail to be sent!")
       setVerified(false)
       console.log('FAILED...', error.text);
+      handleRefresh();
     });
   }
   useEffect(()=>{
@@ -133,7 +132,7 @@ function SignUp() {
       history.push({pathname:"/Home",state:{}});
       setTopage("Home")
     }
-  })
+  },[])
   if(topage===""){
     return (
       <div className="Signup">
@@ -143,12 +142,12 @@ function SignUp() {
             <img src={background_pic} className="background_pic" alt="" width="100%"/>
             <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mt: 2 }}>
               <img src={logo} className="App_Logo" alt="logo" />
-              <Typography variant="h4" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5 }}>
+              <Typography variant="h3" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE' }}>
                 Wellbeing Gallery
               </Typography>
               <Grid container item justifyContent="center" alignItems="center" direction="column">
                 <TextField label="Username" className="Text_Username"
-                   sx = {{ width:"73ch", m:3 }}  variant={"outlined"} color="error" required
+                   sx = {{ width:"73ch", m:3, fontFamily: 'HWE' }}  variant={"outlined"} color="error" required
                    helperText="Recommend to use your outlook name in company email"
                    onChange={handleChange('username')}
                    InputProps={{
@@ -160,7 +159,7 @@ function SignUp() {
                    }}
                 />
                 <TextField label="Email" className="Text_Email"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="email" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="email" required
                    helperText="Recommend to use company email which could receive external emails, otherwise personal mailbox is acceptable"
                    onChange={handleChange('email')}
                    InputProps={{
@@ -173,7 +172,7 @@ function SignUp() {
                 />
                 <Grid container item justifyContent="center" alignItems="flex-start" direction="row" sx = {{ m:2 }}>
                   <TextField label="Email Security Code" className="Text_Email_Security_Code"
-                     sx = {{ width:"52ch" }}  variant={"outlined"} color="error" required
+                     sx = {{ width:"48ch", fontFamily: 'HWE' }}  variant={"outlined"} color="error" required
                      helperText="Please check the coming mail in your mailbox and then fill in."
                      onChange={handleChange('email_security_code')}
                      InputProps={{
@@ -185,14 +184,14 @@ function SignUp() {
                      }}
                   />
                   <Button className="Button_Verify_Email"
-                    variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"15ch", ml:2, mt:0.5}}
+                    variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"18ch", ml:3, mt:0.5, fontFamily: 'HWE'}}
                     onClick={SignUp_Verify_Email} disabled={verified}
                   >
                     Verify Email
                   </Button>
                 </Grid>
                 <TextField label="Password" className="Text_Password"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="password" required
                    helperText="The password should contain 8 - 16 characters, which is a combination of digit, uppercase letters and lowercase letters."
                    onChange={handleChange('password')}
                    InputProps={{
@@ -204,7 +203,7 @@ function SignUp() {
                    }}
                 />
                 <TextField label="Verify Password" className="Text_Password_Verify"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="password" required
                    helperText="Input the password again."
                    onChange={handleChange('password_verfy')}
                    InputProps={{
@@ -217,7 +216,7 @@ function SignUp() {
                 />
                 <Grid container item justifyContent="center" alignItems="center" direction="row">
                   <TextField label="Verfication Code" className="Text_Verfication_code"
-                     sx = {{ width:"61ch", m:2 }}  variant={"outlined"} color="error" required
+                     sx = {{ width:"61ch", mt:2, mb:2, mr: 3 }}  variant={"outlined"} color="error" required
                      onChange={handleChange('verification_code')}
                      InputProps={{
                        startAdornment: (
@@ -226,6 +225,11 @@ function SignUp() {
                          </InputAdornment>
                        ),
                      }}
+                     onKeyDown={(e) => {
+                       if(e.code === 'Enter'){
+                         {SignUp_Button()}
+                       }
+                     }}
                   />
                   <Captcha charNum={4} onChange={handleClick} ref={captchaRef}/>
                 </Grid>
@@ -233,7 +237,7 @@ function SignUp() {
             </Grid>
             <Grid container item justifyContent="center" alignItems="center" direction="column" xs="auto">
               <Button className="Button_Signup"
-                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch"}}
+                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch", fontFamily: 'HWE'}}
                 onClick={SignUp_Button}
               >
                 Sign Up
@@ -244,7 +248,7 @@ function SignUp() {
                 />
                 } label="I have read and agreed to Wellbeing Gallery Privacy and Security Policy and Terms of Use."
               />
-              <Link component="button" underline="always"
+              <Link component="button" underline="always" sx={{ fontFamily: 'HWE' }}
                 onClick={() => {
                   history.push({pathname:"/SignIn",state:{}});
                   setTopage("SignIn")
