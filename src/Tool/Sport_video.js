@@ -12,7 +12,7 @@ const sport_video = '' +
                 'let poseNet;' +
                 'let poses=[];' +
                 'function setup(){' +
-                    'const canvas=createCanvas(640,480);' +
+                    'const canvas=createCanvas(640,540);' +
                     'canvas.parent(\'videoContainer\');' +
                     'video=createCapture(video);' +
                     'video.size(width,height);' +
