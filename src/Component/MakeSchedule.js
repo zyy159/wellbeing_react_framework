@@ -1,7 +1,11 @@
 import React, {useEffect} from "react";
 import AppHeader from '../Tool/App_Header';
 import Mountain from "../Picture/Yoga_Mountain.png";
-import { date_Func,getDateIndex,getDateElement } from '../Tool/Date_Func';
+import { date_Func,getDateIndex,getDateElement,getEndDatetime } from '../Tool/Date_Func';
+import history from "../Tool/history";
+import {Navigate} from "react-router";
+import {Access_Token, authProvider, getAuthenticatedClient, Schedule} from '../Tool/Outlook_Func'
+//import { initializeGraphForUserAuth, sendMailAsync} from '../Tool/Outlook_Func';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import Grid from "@mui/material/Grid";
@@ -32,6 +36,10 @@ import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SendIcon from '@mui/icons-material/Send';
 
 import cookie from "react-cookies";
+import axios from "axios";
+axios.defaults.withCredentials = true;
+axios.defaults.headers.post['Content-Type'] = "application/json";
+const server = 'http://47.97.104.79/';
 
 const Theme = createTheme({
   palette: {
@@ -41,9 +49,23 @@ const Theme = createTheme({
   },
 });
 
+class ResponseInfo {
+    constructor(status, data, msg) {
+        this.status = status;
+        this.data = data;
+        this.msg = msg;
+    }
+}
+
 function MakeSchedule(){
     const today = new Date();
     const [topage, setTopage] = React.useState("");
+    const [exercise_info, setExercise_info] = React.useState({
+        name: '',
+        duration: 0,
+        calories: 0,
+        popularity: 0
+    });
     const [button_style_list, setButton_style_list] = React.useState({
         Five_DAY: 'outlined',
         Ten_DAY: 'outlined',
@@ -74,6 +96,33 @@ function MakeSchedule(){
         setEdit_time(null);
     };
 
+    const Send = () => {
+        const newArray = [...date_list];
+        const sub_schedules = [];
+        const url = ["http://47.97.104.79:3000/Working_Yoga","http://47.97.104.79:3000/Working_Yoga"];
+        const token = cookie.load("token")
+        let data = new FormData();
+        data.append("name",date_config.range+" Days Plan - Mountain")
+        data.append("exercises", url)
+        data.append("start_time", newArray[0])
+        data.append("end_time",  newArray[newArray.length-1])
+        for(let i = 0; i < newArray.length; i++){
+            sub_schedules[i] = {
+                "start_time": new Date(newArray[i]),
+                "end_time": getEndDatetime(new Date(newArray[i]), 10)
+            }
+        }
+         data.append("sub_schedules",  sub_schedules)
+        axios.post(server+"exercise/schedules/", data, {headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
+            console.log(response)
+            alert("The Schedule Mails have been sent! Please check the coming mails!")
+            setTopage("Home")
+        }).catch(err => {
+            console.log(err)
+            alert("Fail to send the schedule mails! Please retry!");
+        })
+    }
+
     useEffect(()=>{
         if(edit_time !== null){
             setDialog_Open(true);
@@ -91,11 +140,17 @@ function MakeSchedule(){
             setDate_list([])
         }
     }, [date_config.range,date_config.from_date]);
+    useEffect(()=>{
+        if(!cookie.load('user_id')){
+            history.push({pathname:"/SignIn",state:{}});
+            setTopage("SignIn")
+        }
+    },[])
 
     if(topage==="") {
         return (
             <div className="MakeSchedulePage">
-                <AppHeader/>
+                <AppHeader topage={topage} setTopage={setTopage}/>
                 <div className="main">
                     <Grid container direction="column" alignItems="center" justifyContent="center" sx={{mb:3}}>
                         <Card sx={{width:1300, mt: 4 }}>
@@ -103,20 +158,20 @@ function MakeSchedule(){
                                 <Grid container item direction="row" alignItems="center" justifyContent="center" xs="auto">
                                     <img src={Mountain} alt={"Mountain"} width="200" />
                                     <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml:3}}>
-                                        <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:350 }}>
+                                        <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:350, fontFamily: 'HWE' }}>
                                             Mountain
                                         </Typography>
-                                        <Typography variant="h5" sx={{ mt:5, width:350 }}>
+                                        <Typography variant="h5" sx={{ mt:5, width:350, fontFamily: 'HWE' }}>
                                             10 mins
                                         </Typography>
                                     </Grid>
                                 </Grid>
                                 <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
-                                    <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200 }}>
+                                    <Typography variant="h3" sx={{ ml:4, fontWeight: 'bold', lineHeight: 1.5, width: 200, fontFamily: 'HWE' }}>
                                         <LocalFireDepartmentIcon fontSize="large" color={"error"}/>
                                         6.1K
                                     </Typography>
-                                    <Typography variant="h6" sx={{ mt:1, width: 200 }}>
+                                    <Typography variant="h6" sx={{ mt:1, width: 200, fontFamily: 'HWE' }}>
                                         CALORIES BURNT
                                     </Typography>
                                 </Grid>
@@ -124,12 +179,12 @@ function MakeSchedule(){
                         </Card>
                         <Grid container item direction="row" alignItems="flex-start" justifyContent="center" className={"Step"} sx={{mt:5, width:1300}}>
                             <Grid container item direction="column" alignItems="flex-start" justifyContent="center" className={"Step1_2"} sx={{width:600}}>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE' }}>
                                     Step 1: Select the Plan Period
                                 </Typography>
                                 <Grid container item direction="column" alignItems="center" justifyContent="flex-start" className={"Step1"}>
                                     <Grid container item direction="row" alignItems="center" justifyContent="center" xs={"auto"} sx={{ mt:3}}>
-                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200}} variant={button_style_list.Five_DAY}
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200, fontFamily: 'HWE'}} variant={button_style_list.Five_DAY}
                                             onClick={() => {
                                                 setButton_style_list({ Five_DAY:"contained", Ten_DAY: "outlined",Three_WEEK:"outlined", One_MONTH:"outlined" })
                                                 setDate_config({...date_config,range: 5, step_two_disabled: false, from_date: dayjs(today)})
@@ -137,7 +192,7 @@ function MakeSchedule(){
                                         >
                                             5 Days Plan
                                         </Button>
-                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200}} variant={button_style_list.Ten_DAY}
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200, fontFamily: 'HWE'}} variant={button_style_list.Ten_DAY}
                                             onClick={() => {
                                                 setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "contained",Three_WEEK:"outlined", One_MONTH:"outlined" })
                                                 setDate_config({...date_config,range: 10, step_two_disabled: false, from_date: dayjs(today)})
@@ -147,7 +202,7 @@ function MakeSchedule(){
                                         </Button>
                                     </Grid>
                                     <Grid container item direction="row" alignItems="center" justifyContent="center" sx={{mt: 2}}>
-                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200}} variant={button_style_list.Three_WEEK}
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', mr: 2, width: 200, fontFamily: 'HWE'}} variant={button_style_list.Three_WEEK}
                                             onClick={() => {
                                                 setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "outlined",Three_WEEK:"contained", One_MONTH:"outlined" })
                                                 setDate_config({...date_config,range: 21, step_two_disabled: false, from_date: dayjs(today)})
@@ -155,7 +210,7 @@ function MakeSchedule(){
                                         >
                                             3 Weeks Plan
                                         </Button>
-                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200}} variant={button_style_list.One_MONTH}
+                                        <Button color={"error"} sx={{fontSize: 'h6.fontSize', width: 200, fontFamily: 'HWE'}} variant={button_style_list.One_MONTH}
                                             onClick={() => {
                                                 setButton_style_list({ Five_DAY:"outlined", Ten_DAY: "outlined",Three_WEEK:"outlined", One_MONTH:"contained" })
                                                 setDate_config({...date_config,range: 30, step_two_disabled: false, from_date: dayjs(today)})
@@ -165,7 +220,7 @@ function MakeSchedule(){
                                         </Button>
                                     </Grid>
                                 </Grid>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, mt: 4 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, mt: 4, fontFamily: 'HWE' }}>
                                     Step 2: Select the Date Range
                                 </Typography>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -186,6 +241,7 @@ function MakeSchedule(){
                                                         onChange={(newValue) =>
                                                             setDate_config({...date_config, from_date: dayjs(newValue)})
                                                         }
+                                                        sx = {{ fontFamily: 'HWE' }}
                                                     />
                                                 </ThemeProvider>
                                             </DemoItem>
@@ -197,13 +253,14 @@ function MakeSchedule(){
                                                         value={date_config.from_date}
                                                         readOnly
                                                         format="L HH:mm"
+                                                        sx={{fontFamily: 'HWE'}}
                                                     />
                                                 </DemoItem>
                                                 <DemoItem >
                                                     <DateTimeField 
                                                         color = "error"
                                                         label={"To Date"}
-                                                        sx = {{mt: 3}}
+                                                        sx = {{mt: 3, fontFamily: 'HWE'}}
                                                         value = {to_date}
                                                         readOnly
                                                         format="L HH:mm"
@@ -215,7 +272,7 @@ function MakeSchedule(){
                                 </LocalizationProvider>
                             </Grid>
                             <Grid container item direction="column" alignItems="flex-start" justifyContent="center" className={"Step1_2"} sx={{ml: 5, width:600}}>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE' }}>
                                     Step 3: Confirm the Schedule and Send the Invitation
                                 </Typography>
                                 {date_list.length === 0
@@ -227,11 +284,11 @@ function MakeSchedule(){
                                                     <ListItem component="div" disablePadding key={date} sx={{ml: 2}}>
                                                         <ListItemText>
                                                             <Typography variant="h6"
-                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5}}>
+                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                                                                 One Week Mountain
                                                             </Typography>
                                                             <Typography variant="h7"
-                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1}}
+                                                                        sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1, fontFamily: 'HWE'}}
                                                                         color={"error"}>
                                                                 {date}
                                                             </Typography>
@@ -246,7 +303,7 @@ function MakeSchedule(){
                                             ))}
                                         </List>
                                         <Dialog open={dialog_open} onClose={dialog_handleClose}>
-                                            <DialogTitle>
+                                            <DialogTitle sx={{ fontFamily: 'HWE' }}>
                                                 {"Edit the start time of "+new Date(edit_time).getFullYear()+"-"+(new Date(edit_time).getMonth() + 1)+"-"+new Date(edit_time).getDate()}
                                             </DialogTitle>
                                             <DialogContent>
@@ -258,26 +315,34 @@ function MakeSchedule(){
                                                                    onChange={(newValue) => setEdit_time(newValue)}
                                                                    disablePast
                                                                    format="HH:mm"
+                                                                   sx={{ fontFamily: 'HWE' }}
                                                         />
                                                     </DemoContainer>
                                                 </LocalizationProvider>
                                             </DialogContent>
                                             <DialogActions>
-                                                <Button onClick={()=>dialog_handleClose()} color={"error"}>Cancel</Button>
-                                                <Button onClick={()=>dialog_handleChange()} color={"error"}>OK</Button>
+                                                <Button onClick={()=>dialog_handleClose()} color={"error"} sx={{ fontFamily: 'HWE' }}>Cancel</Button>
+                                                <Button onClick={()=>dialog_handleChange()} color={"error"} sx={{ fontFamily: 'HWE' }}>OK</Button>
                                             </DialogActions>
                                         </Dialog>
                                     </Box>
                                 }
                             </Grid>
                         </Grid>
-                        <Button variant="contained" color="error" endIcon={<SendIcon size="large" />}  sx={{fontSize: 'h5.fontSize', width: 200, mt: 6}}>
+                        <Button variant="contained" color="error" endIcon={<SendIcon size="large" />}
+                                sx={{fontSize: 'h5.fontSize', width: 200, mt: 6, fontFamily: 'HWE'}}
+                                onClick={()=>Send()}
+                        >
                             Send
                         </Button>
                     </Grid>
                 </div>
             </div>
         );
+    }else if(topage==="SignIn"){
+        return <Navigate to="/SignIn" replace={true} />
+    }else if(topage==="Home"){
+        return <Navigate to="/Home" replace={true} />
     }
 }
 
