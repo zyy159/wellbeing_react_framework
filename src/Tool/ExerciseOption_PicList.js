@@ -19,11 +19,12 @@ function PicList() {
                             title="Tree"
                             subtitle="2 mins · 7.2K Calorie"
                             actionIcon={
-                                <Button sx={{ color:"#ffffff" }}>
+                                <Button sx={{ color:"#ffffff", fontFamily: 'HWE' }}>
                                     <BoltIcon />
                                     Go
                                 </Button>
                             }
+                            sx={{ fontFamily: 'HWE' }}
                         />
                     </ImageListItem>
                     <ImageListItem sx={{width: 280, ml:5}}>
@@ -32,11 +33,12 @@ function PicList() {
                             title="Tree"
                             subtitle="2 mins · 7.2K Calorie"
                             actionIcon={
-                                <Button sx={{ color:"#ffffff" }}>
+                                <Button sx={{ color:"#ffffff", fontFamily: 'HWE' }}>
                                     <BoltIcon />
                                     Go
                                 </Button>
                             }
+                            sx={{ fontFamily: 'HWE' }}
                         />
                     </ImageListItem>
                     <ImageListItem sx={{width: 280, ml:5}}>
@@ -45,11 +47,12 @@ function PicList() {
                             title="Tree"
                             subtitle="2 mins · 7.2K Calorie"
                             actionIcon={
-                                <Button sx={{ color:"#ffffff" }}>
+                                <Button sx={{ color:"#ffffff", fontFamily: 'HWE' }}>
                                     <BoltIcon />
                                     Go
                                 </Button>
                             }
+                            sx={{ fontFamily: 'HWE' }}
                         />
                     </ImageListItem>
                     <ImageListItem sx={{width: 280, ml:5}}>
@@ -58,11 +61,12 @@ function PicList() {
                             title="Tree"
                             subtitle="2 mins · 7.2K Calorie"
                             actionIcon={
-                                <Button sx={{ color:"#ffffff" }}>
+                                <Button sx={{ color:"#ffffff", fontFamily: 'HWE' }}>
                                     <BoltIcon />
                                     Go
                                 </Button>
                             }
+                            sx={{ fontFamily: 'HWE' }}
                         />
                     </ImageListItem>
                 </Grid>
@@ -72,4 +76,3 @@ function PicList() {
 };
 
 export default PicList;
-
