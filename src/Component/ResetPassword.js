@@ -26,7 +26,7 @@ import emailjs from '@emailjs/browser';
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://localhost:80/';
+const server = 'http://47.97.104.79/';
 
 function ResetPassword() {
   const  [values, setValues] = React.useState({
@@ -40,7 +40,6 @@ function ResetPassword() {
 
   const handleChange = (prop) => (event) =>{
     setValues({ ...values, [prop]: event.target.value });
-    console.log(values)
   };
   const Reset_Button = () => {
     if (values.email_security_code === "" || values.password === "" || values.password_verfy === "") {
@@ -69,14 +68,13 @@ function ResetPassword() {
     data.append("email",values.email);
     data.append("password",encrypt_pwd);
     axios.post(server+"/rest-auth/reset/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
-      console.log("response: ",response);
-        if(response.status===201){
-          cookie.save("user_id",values.username);
-          history.push({pathname:"/Home",state:{}});
-          setTopage("Home");
-        }else{
-          console.log("Fail");
-        }
+      if(response.status===201){
+        cookie.save("user_id",values.username);
+        history.push({pathname:"/Home",state:{}});
+        setTopage("Home");
+      }else{
+        console.log("Fail");
+      }
     })
   }
   const Reset_Verify_Email = () => {
@@ -90,7 +88,6 @@ function ResetPassword() {
     var code = '' + (parseInt(Math.random()*1000000)+1000000);
     code = code.substring(1, 7);
     cookie.save("security_code",code);
-    console.log(code);
     emailjs.send("service_jvzt6uc","template_mhjmx5k", {
       to_name: username,
       to_email: values.email,
@@ -118,12 +115,12 @@ function ResetPassword() {
             <img src={background_pic} className="background_pic" alt="" width="100%"/>
             <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mt: 2 }}>
               <img src={logo} className="App_Logo" alt="logo" />
-              <Typography variant="h4" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5 }}>
+              <Typography variant="h3" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
                 Wellbeing Gallery
               </Typography>
               <Grid container item justifyContent="center" alignItems="center" direction="column">
                 <TextField label="Email" className="Text_Email"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="email" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="email" required
                    onChange={handleChange('email')}
                    InputProps={{
                      startAdornment: (
@@ -135,7 +132,7 @@ function ResetPassword() {
                 />
                 <Grid container item justifyContent="center" alignItems="flex-start" direction="row" sx = {{ m:2 }}>
                   <TextField label="Email Security Code" className="Text_Email_Security_Code"
-                     sx = {{ width:"52ch" }}  variant={"outlined"} color="error" required
+                     sx = {{ width:"48ch", fontFamily: 'HWE' }}  variant={"outlined"} color="error" required
                      helperText="Please check the coming mail in your mailbox and then fill in."
                      onChange={handleChange('email_security_code')}
                      InputProps={{
@@ -147,14 +144,14 @@ function ResetPassword() {
                      }}
                   />
                   <Button className="Button_Verify_Email"
-                    variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"15ch", ml:2, mt:0.5}}
+                    variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"18ch", ml:3, mt:0.5, fontFamily: 'HWE'}}
                     onClick={Reset_Verify_Email} disabled={verified}
                   >
                     Verify Email
                   </Button>
                 </Grid>
                 <TextField label="Reset your Password" className="Text_Password"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="password" required
                    helperText="The password should contain 8 - 16 characters, which is a combination of digit, uppercase letters and lowercase letters."
                    onChange={handleChange('password')}
                    InputProps={{
@@ -166,7 +163,7 @@ function ResetPassword() {
                    }}
                 />
                 <TextField label="Verify Password" className="Text_Password_Verify"
-                   sx = {{ width:"73ch", m:2 }}  variant={"outlined"} color="error" type="password" required
+                   sx = {{ width:"73ch", m:2, fontFamily: 'HWE' }}  variant={"outlined"} color="error" type="password" required
                    helperText="Input the password again."
                    onChange={handleChange('password_verfy')}
                    InputProps={{
@@ -181,7 +178,7 @@ function ResetPassword() {
             </Grid>
             <Grid container item justifyContent="center" alignItems="center" direction="column" xs="auto">
               <Button className="Button_Signup"
-                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch"}}
+                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch", fontFamily: 'HWE'}}
                 onClick={Reset_Button}
               >
                 Reset
