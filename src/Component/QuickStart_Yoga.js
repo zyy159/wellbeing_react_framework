@@ -24,14 +24,29 @@ const server = 'http://47.97.104.79/';
 
 function Yoga(){
     const [topage, setTopage] = React.useState("");
-    const [data, setData] = useState([]);
-    const [motions, setMotions] = useState([]);
-    const [motion, setMotion] = useState([]);
+    const [yoga_exercises, setYoga_exercises] = React.useState([])
 
     useEffect(()=>{
         if(!cookie.load('user_id')){
             history.push({pathname:"/SignIn",state:{}});
             setTopage("SignIn")
+        }else{
+            const token = cookie.load("token")
+            const yoga_exercises_Array = [...yoga_exercises];
+            axios.get(server+"exercise/exercises/",{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
+                const exercise_num = response.data['count']
+                const exercise_list = response.data['results']
+                console.log(exercise_list)
+                for(let i = 0; i < exercise_num; i++){
+                    const exercise = exercise_list[i];
+                    const exercise_json = JSON.parse(JSON.stringify(exercise));
+                    if(exercise['category'] === "yoga"){
+                        let j = yoga_exercises_Array.length
+                        yoga_exercises_Array[j] = exercise_json;
+                    }
+                }
+                setYoga_exercises(yoga_exercises_Array)
+            })
         }
     },[])
 
@@ -39,138 +54,35 @@ function Yoga(){
         return (
             <div className="Yoga_Page">
                 <AppHeader topage={topage} setTopage={setTopage}/>
-                <Grid container direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ ml: 2, mt: 4, mr:2, mb: 4 }}>
-                    <Card sx={{ width: 900}}>
-                        <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
-                            <img src={Mountain} alt={"Mountain"} width="200" />
-                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:200, fontFamily: 'HWE' }}>
-                                    Mountain
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'HWE' }}>
-                                    Get started at anywhere
-                                </Typography>
+                <Grid container direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ ml: 2, mt: 6, mr:2, mb: 4 }}>
+                    {yoga_exercises.map((popular_exercise) => (
+                        <Card sx={{ width: 900, mb:3}}>
+                            <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
+                                <img src={Mountain} alt={"Mountain"} width="200" />
+                                <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
+                                    <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:300, fontFamily: 'MSYH' }}>
+                                        {popular_exercise.name}
+                                    </Typography>
+                                    <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'MSYH' }}>
+                                        Get started at anywhere
+                                    </Typography>
+                                </Grid>
+                                <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 10}}>
+                                    <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'MSYH' }}>
+                                        <LocalFireDepartmentIcon color={"error"}/>
+                                        {popular_exercise.calories}
+                                    </Typography>
+                                    <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'MSYH' }}>
+                                        CALORIES BURNT
+                                    </Typography>
+                                </Grid>
+                                <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'MSYH'}} color="error">
+                                    Go
+                                    <BoltIcon variant="small" />
+                                </Button>
                             </Grid>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'HWE' }}>
-                                    <LocalFireDepartmentIcon color={"error"}/>
-                                    6.1K
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'HWE' }}>
-                                    CALORIES BURNT
-                                </Typography>
-                            </Grid>
-                            <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'HWE'}} color="error">
-                                Go
-                                <BoltIcon variant="small" />
-                            </Button>
-                        </Grid>
-                    </Card>
-                    <Card sx={{ mt:4, width: 900 }}>
-                        <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
-                            <img src={Tree} alt={"Tree"} width="200"/>
-                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:200, fontFamily: 'HWE' }}>
-                                    Tree
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'HWE' }}>
-                                    Relax your body in 2 mins
-                                </Typography>
-                            </Grid>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'HWE' }}>
-                                    <LocalFireDepartmentIcon color={"error"}/>
-                                    7.2K
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'HWE' }}>
-                                    CALORIES BURNT
-                                </Typography>
-                            </Grid>
-                            <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'HWE' }} color="error">
-                                Go
-                                <BoltIcon variant="small" />
-                            </Button>
-                        </Grid>
-                    </Card>
-                    <Card sx={{ mt:4, width: 900 }}>
-                        <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto" >
-                            <img src={Triangle} alt={"Triangle"} width="200"/>
-                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:200, fontFamily: 'HWE' }}>
-                                    Triangle
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'HWE' }}>
-                                    Next step to try
-                                </Typography>
-                            </Grid>
-                            <Grid container item direction="column" alignItems="center" justifyContent="flex-start" xs="auto" sx={{ml: 24}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'HWE' }}>
-                                    <LocalFireDepartmentIcon color={"error"}/>
-                                    8.3K
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'HWE' }}>
-                                    CALORIES BURNT
-                                </Typography>
-                            </Grid>
-                            <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'HWE' }} color="error">
-                                Go
-                                <BoltIcon variant="small" />
-                            </Button>
-                        </Grid>
-                    </Card>
-                    <Card sx={{ mt:4, width: 900 }}>
-                        <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
-                            <img src={Holdhand} alt={"Holdhand"} width="200"/>
-                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5 , width:200, fontFamily: 'HWE' }}>
-                                    Holdhand
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'HWE' }}>
-                                    Try to control your breath
-                                </Typography>
-                            </Grid>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24, width: 100}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'HWE' }}>
-                                    <LocalFireDepartmentIcon color={"error"}/>
-                                    9.4K
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'HWE' }}>
-                                    CALORIES BURNT
-                                </Typography>
-                            </Grid>
-                            <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'HWE'}} color="error">
-                                Go
-                                <BoltIcon variant="small" />
-                            </Button>
-                        </Grid>
-                    </Card>
-
-                    <Card sx={{ mt:4, width: 900 }}>
-                        <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto" >
-                            <img src={Chair} alt={"Chair"} width="200" />
-                            <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4}}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:200, fontFamily: 'HWE' }}>
-                                    Chair
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width:200, fontFamily: 'HWE' }}>
-                                    Your are almost there!!!
-                                </Typography>
-                            </Grid>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24 }}>
-                                <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 120, fontFamily: 'HWE' }}>
-                                    <LocalFireDepartmentIcon color={"error"}/>
-                                    10.1K
-                                </Typography>
-                                <Typography variant="h7" sx={{ mt:1, width: 140, fontFamily: 'HWE' }}>
-                                    CALORIES BURNT
-                                </Typography>
-                            </Grid>
-                            <Button variant="contained" sx={{ ml: 3, mr: 2, fontSize: 'h6.fontSize', fontFamily: 'HWE'}} color="error">
-                                Go
-                                <BoltIcon variant="small" />
-                            </Button>
-                        </Grid>
-                    </Card>
+                        </Card>
+                    ))}
                 </Grid>
             </div>
         );
