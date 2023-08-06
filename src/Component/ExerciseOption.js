@@ -7,6 +7,7 @@ import Mountain from "../Picture/Yoga_Mountain.png";
 import Card from '@mui/material/Card';
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import Pagination from '@mui/material/Pagination';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import Button from "@mui/material/Button";
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -29,6 +30,8 @@ function ExerciseOption() {
     const [popular_exercises, setPopular_exercises] = React.useState([])
     const [yoga_exercises, setYoga_exercises] = React.useState([])
     const [path, setPath] = React.useState("")
+    const [popular_pageid, setPopular_id] = React.useState(1)
+    const [popular_showlist, setPopular_showlist] = React.useState([])
 
     useEffect(()=>{
         if(!cookie.load('user_id')){
@@ -37,7 +40,7 @@ function ExerciseOption() {
         }else{
             const token = cookie.load("token")
             const yoga_exercises_Array = [...yoga_exercises];
-                const popular_exercises_Array = [...popular_exercises];
+            const popular_exercises_Array = [...popular_exercises];
             axios.get(server+"exercise/exercises/",{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
                 const exercise_num = response.data['count']
                 const exercise_list = response.data['results']
@@ -56,9 +59,15 @@ function ExerciseOption() {
                 console.log(popular_exercises_Array)
                 setYoga_exercises(yoga_exercises_Array)
                 setPopular_exercises(popular_exercises_Array)
+                setPopular_showlist(popular_exercises_Array.slice(0,5))
             })
         }
     },[])
+    const pagination_change = (event, value) => {
+        setPopular_id(value);
+        const yoga_exercises_Array = popular_exercises.slice((value-1)*5, value*5)
+        setPopular_showlist(yoga_exercises_Array)
+    };
     const Moutain_Go_Button = () => {
         history.push({pathname:"/MakeSchedule",state:{}});
         setTopage("MakeSchedule");
@@ -72,7 +81,7 @@ function ExerciseOption() {
                         <Typography variant="h4" color="error" sx={{ml: 5, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                             Most Popular
                         </Typography>
-                        {popular_exercises.map((popular_exercise) => (
+                        {popular_showlist.map((popular_exercise) => (
                             <Card sx={{width:1300, mt: 3 }}>
                                 <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
                                     <img src={Mountain} alt={"Mountain"} width="200" />
@@ -110,6 +119,7 @@ function ExerciseOption() {
                                 </Grid>
                             </Card>
                         ))}
+                        <Pagination count={Math.ceil(popular_exercises.length/5)} page={popular_pageid} onChange={pagination_change} sx={{mt:2}}/>
                     </Grid>
                     <Grid container item direction="column" alignItems="center" justifyContent="center"  sx={{ mt: 3, mr: 2, mb: 4}}>
                         <Typography variant="h4" color="error" sx={{ml: 5, fontWeight: 'bold', lineHeight: 1.5, mb: 3, fontFamily: 'MSYH'}}>
