@@ -71,3 +71,20 @@
 .control .right:hover {
     background-color: rgba(0, 0, 0, .3);
 }
+
+.point {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.line {
+    position: absolute;
+    height: 2px;
+    background-color: blue;
+    transform-origin: left;
+}
+
