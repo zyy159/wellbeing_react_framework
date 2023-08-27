@@ -8,9 +8,15 @@ const sport_video = '' +
             '<div id="videoContainer"></div>' +
             '<!--load the posenet.js file-->' +
             '<script type="text/javascript">' +
+                'let poseCallback = null;' +
                 'let video;' +
                 'let poseNet;' +
                 'let poses=[];' +
+                'let frameCounter = 0;'+
+                'const sampleInterval = 5;' +
+                'window.setPoseCallback = function(callback) {' +
+                      'poseCallback = callback;' +
+                '};' +
                 'function setup(){' +
                     'const canvas=createCanvas(640,540);' +
                     'canvas.parent(\'videoContainer\');' +
@@ -46,11 +52,20 @@ const sport_video = '' +
                         '}' +
                     '}' +
                 '}' +
+                'function setPoseCallback(callback) {'+
+                    'poseCallback = callback;'+
+                '}'+
                 'function draw(){' +
                     'image(video,0,0,width,height);' +
-                    'drawKeypoints();' +
-                    'drawSkeleton();' +
-                    'console.log(poses)' +
+                    'if (frameCounter % sampleInterval === 0) {'+
+                        'drawKeypoints();' +
+                        'drawSkeleton();' +
+                        'if (poseCallback) {'+
+                            'poseCallback(poses);'+
+                        '}'+
+                    '}'+
+                    'frameCounter++;'+
+                   // 'console.log(poses)' +
                 '}' +
             '</script>' +
         '</body>' +
