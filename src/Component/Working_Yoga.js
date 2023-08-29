@@ -38,76 +38,50 @@ Chart.register(LinearScale);
 Chart.register(PointElement);
 Chart.register(LineElement);
 
-
-const imageUrls = [
-        'https://wellbeing-resources.oss-cn-hangzhou.aliyuncs.com/exercises_images/%E6%8B%8D%E7%85%A7/%E6%89%8B%E6%8C%8702',
-        'https://wellbeing-resources.oss-cn-hangzhou.aliyuncs.com/exercises_images/%E6%8B%8D%E7%85%A7/%E8%82%A9%E8%86%8004',
-        'https://wellbeing-resources.oss-cn-hangzhou.aliyuncs.com/exercises_images/%E6%8B%8D%E7%85%A7/%E6%89%8B%E6%8C%8705',
-        // ... 其他URLs ...
-    ];
-
-const imgs = imageUrls.map(url => ({
-        label: "Label for Test ",  // 你可以为每个URL定义一个标签
-        imgPath: url
-    }));
-
 function Working_Yoga(){
     const [topage, setTopage] = React.useState("")
-    const [showIndex, setShowIndex] = React.useState(imgs.length)
+    const [showIndex, setShowIndex] = React.useState(0)
     const [timer, setTimer] = React.useState(null)
     const [status, setStatus] = React.useState("Not Start")
-    const counterValid = showIndex < imgs.length-1;
     const [startComparison, setStartComparison] = React.useState(false);
     const [imagePose, setImagePose] = React.useState(null);
     const [videoPose, setVideoPose] = React.useState(null);
     const [net, setNet] = React.useState(null);
     const [similarityScores, setSimilarityScores] = React.useState([]);
-
-    const startCountdown = () => {
-//        let timeLeft = 10;
-//        setCountdown(timeLeft);
-//
-//        const timer = setInterval(() => {
-//          timeLeft--;
-//          setCountdown(timeLeft);
-//
-//          if (timeLeft <= 0) {
-//            clearInterval(timer);
-//            setCountdown(null);
-//            setstartrecog(true)
-//          }
-//         }, 1000);
-//        setCountdownTimer(timer);
-    };
-
-    const imageRefs = [];  // Step 1: Define an empty array to hold refs
-    imgs.forEach((_, i) => {
-        imageRefs[i] = React.createRef();  // Fill the refs array
-    });
-
-    const poseContainerRefs = [];  // Step 1: Define an empty array to hold refs
-    imgs.forEach((_, i) => {
-        poseContainerRefs[i] = React.createRef();  // Fill the refs array
-    });
+    const [exerciseData, setExerciseData] = React.useState(null);
+    const [modelStores, setModelStores] = React.useState([]);
+    const [currentModel, setCurrentModel] = React.useState(null);
+    const [imageData, setImageData] = React.useState([]); // 用于存储图像URL和对应的标签
+    const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 }]);
+    const [imageRefs, setImageRefs] = React.useState([]); // 初始化为空数组
+    const [poseContainerRefs, setPoseContainerRefs] = React.useState([]); // 初始化为空数组
+    const [shouldStart, setShouldStart] = React.useState(false);
+    const [isPaused, setIsPaused] = React.useState(false);
+    const [countdown, setCountdown] = React.useState(0);
 
     const stop = () => {
         setShowIndex(0)
         clearInterval(timer);
     }
+
+    const pause = () => {
+        setIsPaused(true);
+    }
     const start = () => {
         setShowIndex(0)
         const now = new Date();
         const formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-
         console.log("Click Start Time:", formattedTime);
+        setShouldStart(true);
+        setIsPaused(false);
         setStartComparison(true)
         setStatus("In Progress")
-        startCountdown();
     }
     const change = (index) => {
         setShowIndex(index)
     }
 
+    //prepare the line chart
     const data = {
         labels: similarityScores.map((_, i) => i + 1),  // 生成标签
         datasets: [
@@ -130,11 +104,49 @@ function Working_Yoga(){
         },
     };
 
-    useEffect(() => {
-        // 更新 similarityScores 状态
+    // 创建一个异步函数来获取和设置数据
+    const fetchAndSetData = async () => {
+      try {
+            const exerciseID = '15';
+            const difficulty = 2;
+            const exerciseResponse = await axios.get(`http://47.97.104.79/exercise/exercises/${exerciseID}/`);
+            const modelStores = exerciseResponse.data.model_stores;
+            console.log("exerciseResponse",exerciseResponse.data)
+            if (modelStores.length > 0) {
+              const fetchedModels = await Promise.all(modelStores.map(async (storeUrl) => {
+                const response = await axios.get(storeUrl);
+                return {
+                      label: response.data.name,
+                      imgPath: response.data.model_url,
+                      duration: response.data.duration * 1000 * difficulty,
+                      calories: response.data.calories * difficulty,
+                };
+              }));
 
-          console.log('setSimilarityScores:', setSimilarityScores);
-      }, [similarityScores]);
+              const sortedModels = fetchedModels.sort((a, b) => {
+                   return a.label.localeCompare(b.label);
+              });
+              console.log("setImgs fetchedModels",fetchedModels)
+              setImgs(sortedModels);
+
+              // 你也可以在这里更新其他依赖于 imgs 的状态
+              const newImageRefs = fetchedModels.map(() => React.createRef());
+              setImageRefs(newImageRefs);
+              setShowIndex(fetchedModels.length - 1);
+              const newPoseContainerRefs = fetchedModels.map(() => React.createRef());
+              setPoseContainerRefs(newPoseContainerRefs);
+            }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    // 在 useEffect 中调用该函数
+    useEffect(() => {
+        console.log("fetchAndSetData start")
+        fetchAndSetData();
+    }, []);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
+
 //    useEffect(()=>{
 //        if(!cookie.load('user_id')){
 //            history.push({pathname:"/SignIn",state:{}});
@@ -142,39 +154,113 @@ function Working_Yoga(){
 //        }
 //    },[])
 
+    //prepare the image interval
+//    useEffect(() => {
+//          let intervalId;
+//          let currentDuration = 0; // 或其他默认值
+//          // 当有有效的图片索引，并且图片数组不为空时
+//          console.log("currentDuration imgs",imgs)
+//          if ( shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length) {
+//            currentDuration = imgs[showIndex].duration;
+//            setCountdown(currentDuration / 1000);  // 假设 duration 是以毫秒为单位
+//                // 更新倒计时
+//            // 设置定时器
+//            if (!isPaused) {
+//                // 初始化倒计时
+//                intervalId = setInterval(() => {
+//                    setCountdown(prevCountdown => {
+//                        if (prevCountdown <= 1) {
+//                            clearInterval(intervalId); // 当倒计时到 0 时清除定时器
+//                            return 0;
+//                        }
+//                        return prevCountdown - 1;
+//                    });
+//                }, 1000); // 每秒更新一次
+//
+//                intervalId = setInterval(() => {
+//                  setShowIndex((si) => si + 1);
+//                }, currentDuration);
+//            }
+//          }
+//
+//          // 清除定时器
+//          return () => {
+//            clearInterval(intervalId);
+//          };
+//    }, [showIndex, imgs,shouldStart,isPaused]);
+
+    // 用于图片轮播的 useEffect
+    useEffect(() => {
+        let imageIntervalId;
+
+        // 当有有效的图片索引，并且图片数组不为空时
+        if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
+            const currentDuration = imgs[showIndex].duration;
+
+            // 设置图片轮播的定时器
+            imageIntervalId = setInterval(() => {
+                setShowIndex((prevIndex) => prevIndex + 1);
+            }, currentDuration);
+        }
+
+        // 清除图片轮播的定时器
+        return () => {
+            clearInterval(imageIntervalId);
+        };
+    }, [showIndex, imgs, shouldStart, isPaused]);
+
+    // 用于倒计时的 useEffect
+    useEffect(() => {
+        let countdownIntervalId;
+
+        if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
+            setCountdown(Math.floor(imgs[showIndex].duration / 1000));  // 初始化倒计时
+
+            // 设置倒计时的定时器
+            countdownIntervalId = setInterval(() => {
+                setCountdown((prevCountdown) => prevCountdown - 1);
+            }, 1000);
+        }
+
+        // 清除倒计时的定时器
+        return () => {
+            clearInterval(countdownIntervalId);
+        };
+    }, [showIndex, imgs, shouldStart, isPaused]);
+
 //
 // Normalize keypoints based on the nose position
-        function normalize_keypoints(keypoints) {
-          console.log('keypoints:', keypoints);
-          const nose_x = keypoints[0].position.x;
-          const nose_y = keypoints[0].position.y;
-          const normalized_keypoints = keypoints.map(keypoint => {
-            return {
-              position: {
-                x: keypoint.position.x - nose_x,
-                y: keypoint.position.y - nose_y
-              },
-              part: keypoint.part
-            };
-          });
-          return normalized_keypoints;
-        }
+    function normalize_keypoints(keypoints) {
+      console.log('keypoints:', keypoints);
+      const nose_x = keypoints[0].position.x;
+      const nose_y = keypoints[0].position.y;
+      const normalized_keypoints = keypoints.map(keypoint => {
+        return {
+          position: {
+            x: keypoint.position.x - nose_x,
+            y: keypoint.position.y - nose_y
+          },
+          part: keypoint.part
+        };
+      });
+      return normalized_keypoints;
+    }
 
-        // Calculate Euclidean distance between two points
-        function euclidean_distance(pt1, pt2) {
-          return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
-        }
+    // Calculate Euclidean distance between two points
+    function euclidean_distance(pt1, pt2) {
+      return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
+    }
 
-        // Calculate similarity between two poses
-        function pose_similarity(normalized_pose1, normalized_pose2) {
-          let distance = 0;
-          for (let i = 0; i < normalized_pose1.length; i++) {
-            const keypoint1 = normalized_pose1[i];
-            const keypoint2 = normalized_pose2[i];
-            distance += euclidean_distance(keypoint1.position, keypoint2.position);
-          }
-          return distance / normalized_pose1.length;
-        }
+    // Calculate similarity between two poses
+    function pose_similarity(normalized_pose1, normalized_pose2) {
+      let distance = 0;
+      for (let i = 0; i < normalized_pose1.length; i++) {
+        const keypoint1 = normalized_pose1[i];
+        const keypoint2 = normalized_pose2[i];
+        distance += euclidean_distance(keypoint1.position, keypoint2.position);
+      }
+      return distance / normalized_pose1.length;
+    }
     // Calculate cosine similarity between two vectors
     function cosine_similarity(a, b) {
       let dotProduct = 0;
@@ -223,12 +309,12 @@ function Working_Yoga(){
 //        console.log('Similarity:', similarity);
     }
 
-    useEffect(()=>{
-        const intervalId = counterValid && setInterval(() =>
-            setShowIndex(si=>si+1), 20000
-        );
-        return () => clearInterval(intervalId)
-    },[counterValid])
+//    useEffect(()=>{
+//        const intervalId = counterValid && setInterval(() =>
+//            setShowIndex(si=>si+1), 20000
+//        );
+//        return () => clearInterval(intervalId)
+//    },[counterValid])
 
     useEffect(() => {
         async function loadPoseNetModel() {
@@ -360,21 +446,14 @@ function Working_Yoga(){
 
     }, []);
 
-//    useEffect(() => {
-//        const now = new Date();
-//        const formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-//
-//        console.log("Updated poseFromImage:", formattedTime);
-//
-//    }, [showIndex]);
-
+    // Calculate the similarity
     useEffect(() => {
       const now = new Date();
       let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace
       (/:/g, '');
 
       //console.log("Video pose Timestamp:", formattedTime);
-      if (videoPose && imagePose)  {  // 确保 poseFromImage 已经被设置
+      if (shouldStart && videoPose && imagePose)  {  // 确保 poseFromImage 已经被设置
           formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace
           (/:/g, '');
 
@@ -384,7 +463,7 @@ function Working_Yoga(){
           console.log("poseFromVideo:", videoPose);
           poseSimilarity(videoPose, imagePose);
       }
-    }, [videoPose, imagePose]);
+    }, [videoPose, imagePose,shouldStart]);
 
     if (topage === "") {
         return (
@@ -535,6 +614,16 @@ function Working_Yoga(){
                                                                 //onLoad={() => handleImageLoad(index)}
                                                                 key={index}
                                                                 />
+                                                                <div style={{
+                                                                        position: 'absolute',
+                                                                        top: 0,
+                                                                        left: 0,
+                                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                                        color: 'white',
+                                                                        padding: '5px'
+                                                                     }}>
+                                                                        {countdown} s
+                                                                </div>
                                                             </div>
                                                             //<img src={value.imgPath}/>
                                                         </li>
