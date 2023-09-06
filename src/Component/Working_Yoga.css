@@ -88,3 +88,22 @@
     transform-origin: left;
 }
 
+.fa-star {
+    font-size: 60px !important;
+    color: rgba(128, 128, 128, 0.5);
+    stroke: rgba(128, 128, 128, 0.5);
+    stroke-width: 3;
+}
+
+.fa-star.checked {
+    color: gold;
+    stroke: gold;
+}
+
+#star-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
