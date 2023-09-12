@@ -254,12 +254,12 @@ function Working_Yoga(){
         fetchAndSetData();
     }, []);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
 
-//    useEffect(()=>{
-//        if(!cookie.load('user_id')){
-//            history.push({pathname:"/SignIn",state:{}});
-//            setTopage("SignIn")
-//        }
-//    },[])
+    useEffect(()=>{
+        if(!cookie.load('user_id')){
+            history.push({pathname:"/SignIn",state:{}});
+            setTopage("SignIn")
+        }
+    },[])
 
     // 用于图片轮播的 useEffect
     useEffect(() => {
