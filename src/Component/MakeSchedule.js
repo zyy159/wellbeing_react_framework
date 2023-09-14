@@ -40,7 +40,8 @@ import cookie from "react-cookies";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://47.97.104.79/';
+const server = 'https://wellbeing.htcangelfund.com/api/';
+const fronEndserver = 'https://wellbeing.htcangelfund.com/';
 
 const Theme = createTheme({
   palette: {
@@ -60,8 +61,8 @@ class ResponseInfo {
 
 function MakeSchedule(){
     const location = useLocation();
-    const [path, setPath] = React.useState(location.search)
-    console.log(path)
+    const [exerciseID, setExerciseID] = React.useState((location.search).replaceAll("?exercise=",""))
+    console.log(exerciseID)
     const today = new Date();
     const [topage, setTopage] = React.useState("");
     const [exercise_info, setExercise_info] = React.useState({
@@ -104,15 +105,11 @@ function MakeSchedule(){
     const Send = () => {
         const newArray = [...date_list];
         const sub_schedules = [];
-        const exercises = [];
-        exercises.push("http://47.97.104.79:3000/Working_Yoga")
-        exercises.push("http://47.97.104.79:3000/Working_Yoga")
         const token = cookie.load("token")
         let data = new FormData();
         console.log("exercise_link ",exercise_link)
         data.append("name",exercise_info.name)
-        data.append("exercises[]", "http://47.97.104.79/exercise/exercises/1/")
-        //data.append("exercises", "http://47.97.104.79/exercise/exercises/2/")
+        data.append("exercises[]", `https://wellbeing.htcangelfund.com/api/exercise/exercises/${exerciseID}/`)
         data.append("start_time", newArray[0])
         data.append("end_time",  newArray[newArray.length-1])
         for(let i = 0; i < newArray.length; i++){
@@ -139,6 +136,7 @@ function MakeSchedule(){
             setDialog_Open(false);
         }
     }, [edit_time]);
+
     useEffect(()=>{
         if(date_config.from_date !== null){
             setTo_date(dayjs(date_config.from_date).add(date_config.range-1, 'day'));
@@ -149,28 +147,25 @@ function MakeSchedule(){
             setDate_list([])
         }
     }, [date_config.range,date_config.from_date]);
+
     useEffect(()=>{
         if(!cookie.load('user_id')){
             history.push({pathname:"/SignIn",state:{}});
             setTopage("SignIn")
         }else{
             const token = cookie.load("token")
-            const name = (path.replaceAll("?exercise=","")).replaceAll("_"," ")
-            axios.get(server+"exercise/exercises/",{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
-                const exercise_num = response.data['count']
-                const exercise_list = response.data['results']
-                for(let i = 0; i < exercise_num; i++) {
-                    const exercise = exercise_list[i];
-                    const exercise_json = JSON.parse(JSON.stringify(exercise));
-                    if(exercise_json.name === name){
-                        console.log(exercise_json)
-                        setExercise_info({...exercise_info, name:exercise_json.name, duration:exercise_json.duration, calories:exercise_json.calories, popularity:exercise_json.popularity})
-                        setExercise_link(exercise_json.model_stores)
-                    }
-                }
-            })
+            let tmpExercise_link=fronEndserver+"Working_Yoga?exercise="+exerciseID+"&token="+token
+            setExercise_link(tmpExercise_link)
+            console.log(tmpExercise_link)
+//            axios.get(server+"exercise/exercises/"+exerciseID,{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
+//                setExercise_info({...exercise_info, name:response.data.name, duration:response.data.duration, calories:response.data.calories, popularity:response.data.popularity})
+//                setExercise_link(response.data.model_stores)
+//            }).catch(err => {
+//                console.log(err)
+//                alert("Fail to load! Please retry!");
+//            })
         }
-    },[])
+    },[]);
 
     if(topage==="") {
         return (
@@ -367,7 +362,7 @@ function MakeSchedule(){
     }else if(topage==="SignIn"){
         return <Navigate to="/SignIn" replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 }
 
