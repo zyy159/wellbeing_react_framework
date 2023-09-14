@@ -23,7 +23,7 @@ import ImageListItemBar from "@mui/material/ImageListItemBar/ImageListItemBar";
 import dayjs from "dayjs";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://47.97.104.79/';
+const server = 'https://wellbeing.htcangelfund.com/api/';
 
 function ExerciseOption() {
     const [topage, setTopage] = React.useState("");
@@ -68,10 +68,6 @@ function ExerciseOption() {
         const yoga_exercises_Array = popular_exercises.slice((value-1)*5, value*5)
         setPopular_showlist(yoga_exercises_Array)
     };
-    const Moutain_Go_Button = () => {
-        history.push({pathname:"/MakeSchedule",state:{}});
-        setTopage("MakeSchedule");
-    };
     if(topage===""){
         return(
             <div className="ExerciseOption">
@@ -107,8 +103,9 @@ function ExerciseOption() {
                                     <Button variant="contained" sx={{ ml: 2, mr: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH'}}
                                         size="large" color="error"
                                         onClick={() => {
-                                            const name = popular_exercise.name.replaceAll(" ","_")
-                                            setPath("/MakeSchedule?exercise="+name)
+                                            const id = popular_exercise.id
+                                            // const name = popular_exercise.name.replaceAll(" ","_")
+                                            setPath("/MakeSchedule?exercise="+id)
                                             history.push({pathname:path, state:{}});
                                             setTopage("MakeSchedule");
                                         }}
@@ -137,8 +134,9 @@ function ExerciseOption() {
                                                 actionIcon={
                                                     <Button sx={{ color:"#ffffff", fontFamily: 'MSYH' }}
                                                         onClick={() => {
-                                                            const name = yoga_exercise.name.replaceAll(" ","_")
-                                                            setPath("/MakeSchedule?exercise="+name)
+                                                            const id = yoga_exercise.id
+                                                            // const name = yoga_exercise.name.replaceAll(" ","_")
+                                                            setPath("/MakeSchedule?exercise="+id)
                                                             history.push({pathname:path, state:{}});
                                                             setTopage("MakeSchedule");
                                                         }}
@@ -163,7 +161,7 @@ function ExerciseOption() {
     }else if(topage==="MakeSchedule"){
         return <Navigate to={path} replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 }
 

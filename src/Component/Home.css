@@ -1,0 +1,4 @@
+.plan-list {
+    max-height: 400px; /* 设置您希望的最大高度 */
+    overflow-y: auto; /* 当内容溢出时显示垂直滚动条 */
+}
