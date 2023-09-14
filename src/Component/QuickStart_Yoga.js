@@ -20,7 +20,7 @@ import {Navigate} from "react-router";
 import axios from 'axios';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://47.97.104.79/';
+const server = 'https://wellbeing.htcangelfund.com/api/';
 
 function Yoga(){
     const [topage, setTopage] = React.useState("");
@@ -89,7 +89,7 @@ function Yoga(){
     }else if(topage==="SignIn"){
         return <Navigate to="/SignIn" replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 };
 
