@@ -77,7 +77,7 @@ function SignIn() {
             data.append("username",values.username);
             data.append("email","");
             data.append("password",values.password);
-            axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json'},"X-CSRFToken": csrftoken }).then(function
+            axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json'} }).then(function
             (response) {
                 cookie.save("user_id",values.username, { maxAge: 60*60*24*365 });
                 cookie.save("token",response.data.key, { maxAge: 60*60*24*365 });
