@@ -52,7 +52,18 @@ function SignIn() {
         history.push({pathname:"/ResetPassword",state:{}});
         setTopage("ResetPassword");
     }
+    const clearSiteCookies = () => {
+        // 获取当前网站所有的 cookie
+        const allCookies = cookie.loadAll();
+
+        // 清除所有获取到的 cookie
+        for (const [key] of Object.entries(allCookies)) {
+            cookie.remove(key);
+        }
+    }
+    
     const SignIn_Button = () => {
+        clearSiteCookies();
         const csrftoken = cookie.load('csrftoken');
         console.log("csrftoken",csrftoken)
         if(values.password==="" || values.username==="" || values.verification_code===""){
