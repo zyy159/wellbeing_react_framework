@@ -250,7 +250,13 @@ function Working_Yoga(){
 
     useEffect(() => {
         async function loadPoseNetModel() {
-            const model = await posenet.load();
+            const model = await posenet.load({
+                    architecture: 'MobileNetV1',
+                    outputStride: 16,
+                    multiplier: 0.75,
+                    modelUrl: 'https://wellbeing.htcangelfund.com/models/movenet/model.json', // 指定模型的新位置
+                    // inputResolution: 801
+                });
             setNet(model);
         }
         loadPoseNetModel();
