@@ -54,6 +54,7 @@ function SignIn() {
     }
     const SignIn_Button = () => {
         const csrftoken = cookie.load('csrftoken');
+        console.log("csrftoken",csrftoken)
         if(values.password==="" || values.username==="" || values.verification_code===""){
             alert("Please input the required textfield.")
             handleRefresh();
