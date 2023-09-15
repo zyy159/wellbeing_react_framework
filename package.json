@@ -56,7 +56,9 @@
     "react-window": "^1.8.8",
     "readline-sync": "^1.4.10",
     "styled-components": "^5.3.6",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "@tensorflow/tfjs": "^3.8.0",
+    "@tensorflow-models/posenet": "^2.0.3"
   },
   "scripts": {
     "start": "react-scripts start",
