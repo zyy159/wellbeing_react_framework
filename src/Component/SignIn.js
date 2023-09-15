@@ -61,11 +61,10 @@ function SignIn() {
             cookie.remove(key);
         }
     }
-    
+
     const SignIn_Button = () => {
         clearSiteCookies();
         const csrftoken = cookie.load('csrftoken');
-        console.log("csrftoken",csrftoken)
         if(values.password==="" || values.username==="" || values.verification_code===""){
             alert("Please input the required textfield.")
             handleRefresh();
@@ -77,7 +76,7 @@ function SignIn() {
             data.append("username",values.username);
             data.append("email","");
             data.append("password",values.password);
-            axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json'} }).then(function
+            axios.post(server+"rest-auth/login/",data,{headers:{"Content-Type":'application/json'},"X-CSRFToken": csrftoken }).then(function
             (response) {
                 cookie.save("user_id",values.username, { maxAge: 60*60*24*365 });
                 cookie.save("token",response.data.key, { maxAge: 60*60*24*365 });
@@ -185,7 +184,7 @@ function SignIn() {
     }else if(topage==="SignUp"){
         return <Navigate to="/SignUp" replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/" replace={true} />
+        return <Navigate to="/Home" replace={true} />
     }else if(topage==="ResetPassword"){
         return <Navigate to="/ResetPassword" replace={true} />
     }
