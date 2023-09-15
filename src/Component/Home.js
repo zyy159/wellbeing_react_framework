@@ -217,11 +217,11 @@ function Home() {
                                     </Grid>
                                     <Grid container direction="column" alignItems="center" justifyContent="center"
                                           sx={{mt: 1}}>
-                                        <Card sx={{width: 500, height: 330}}>
+                                        <Card sx={{ width: 500, height: 330, display: 'flex', flexDirection: 'column' }}>
                                             <Typography variant="h5" sx={{m: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                                                 Upcoming Plans
                                             </Typography>
-                                            <div className="plan-list">
+                                            <div className="plan-list" style={{ flex: 1, overflowY: 'auto' }}>
                                                 {upcomingPlans.map((plan, index) => (
                                                     <Grid container item direction="row" justifyContent="flex-start"
                                                           alignItems="center" xs="auto" sx={{ml: 2, mt: 2, mb: 1}} key={index}>
