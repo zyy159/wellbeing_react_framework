@@ -269,6 +269,7 @@ function Working_Yoga(){
                     architecture: 'MobileNetV1',
                     outputStride: 16,
                     multiplier: 0.75,
+                    modelUrl: 'https://wellbeing-resources.oss-cn-hangzhou.aliyuncs.com/models/movenet/movenet/model.json', // 指定模型的新位置
                     // inputResolution: 801
                 });
 
