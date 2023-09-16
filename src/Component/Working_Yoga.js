@@ -254,7 +254,7 @@ function Working_Yoga(){
                     architecture: 'MobileNetV1',
                     outputStride: 16,
                     multiplier: 0.75,
-                    modelUrl: 'https://wellbeing.htcangelfund.com/models/movenet/model.json', // 指定模型的新位置
+                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
                     // inputResolution: 801
                 });
             setNet(model);
@@ -275,7 +275,7 @@ function Working_Yoga(){
                     architecture: 'MobileNetV1',
                     outputStride: 16,
                     multiplier: 0.75,
-                    modelUrl: 'https://wellbeing.htcangelfund.com/models/movenet/model.json', // 指定模型的新位置
+                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
                     // inputResolution: 801
                 });
 
