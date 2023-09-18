@@ -250,15 +250,37 @@ function Working_Yoga(){
 
     useEffect(() => {
         async function loadPoseNetModel() {
-            const model = await posenet.load({
-                    architecture: 'MobileNetV1',
-                    outputStride: 16,
-                    multiplier: 0.75,
-                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
-                    // inputResolution: 801
-                });
-            setNet(model);
+      // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
+      const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
+          const base64WeightsArray = await response.json();
+
+          // 将 Base64 编码的字符串解码为 ArrayBuffer
+          const weightBuffers = base64WeightsArray.map(base64Weights => {
+            const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
+            return binaryWeights.buffer;
+          });
+
+          const model = await posenet.load({
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.75,
+            modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
+            fetchFunc: async (url) => {
+              console.log(url)
+              const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
+              if (shardIndex) {
+                const index = parseInt(shardIndex[1]) - 1;
+                console.log(weightBuffers[index])
+                return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
+              } else {
+                return fetch(url);
+              }
+            }
+          });
+
+          setNet(model);
         }
+
         loadPoseNetModel();
       }, []);
 
@@ -271,13 +293,41 @@ function Working_Yoga(){
         function handleVideoLoaded() {
             //console.log("Video data loaded.");
             async function initializePoseNet() {
+                // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
+                const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
+                const base64WeightsArray = await response.json();
+
+                // 将 Base64 编码的字符串解码为 ArrayBuffer
+                const weightBuffers = base64WeightsArray.map(base64Weights => {
+                    const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
+                    return binaryWeights.buffer;
+                });
+
                 const net = await posenet.load({
                     architecture: 'MobileNetV1',
                     outputStride: 16,
                     multiplier: 0.75,
-                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
-                    // inputResolution: 801
-                });
+                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
+                    fetchFunc: async (url) => {
+                      console.log(url)
+                      const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
+                      if (shardIndex) {
+                        const index = parseInt(shardIndex[1]) - 1;
+                        console.log(weightBuffers[index])
+                        return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
+                      } else {
+                        return fetch(url);
+                      }
+                    }
+                  });
+
+//                const net = await posenet.load({
+//                    architecture: 'MobileNetV1',
+//                    outputStride: 16,
+//                    multiplier: 0.75,
+//                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
+//                    // inputResolution: 801
+//                });
 
                 async function detectPose() {
                     const pose = await net.estimateSinglePose(video, {
