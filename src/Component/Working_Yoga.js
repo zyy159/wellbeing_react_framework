@@ -1,21 +1,14 @@
 import React,{Component, useEffect,useRef} from "react";
 import {Navigate, useLocation} from 'react-router-dom';
-import { estimateImagePose, drawKeypointsToDiv, drawSkeletonToDiv } from '../Tool/Sample_pic.js';
 import AppHeader from '../Tool/App_Header';
-import Footer from '../Tool/Footer';
-import chair from "../Picture/Pose/chair.png";
-import dog from "../Picture/Pose/dog.png";
-import mountain from "../Picture/Pose/mountain.png";
-import tree from "../Picture/Pose/tree.png";
-import warrior1 from "../Picture/Pose/warrior1.png";
-import Calories from '../Picture/Calories_Chart.png';
-import sport_video from '../Tool/Sport_video.js';
-import useImagePose from '../Tool/useImagePose.js';
-import history from "../Tool/history";
 import './Working_Yoga.css';
-import { Line } from 'react-chartjs-2';
-import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
+import history from "../Tool/history";
+// import 'font-awesome/css/font-awesome.min.css';
 
+import { Line } from 'react-chartjs-2';
+import * as posenet from '@tensorflow-models/posenet';
+import * as tf from '@tensorflow/tfjs';
+import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
 import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
 import SelfImprovementIcon from '@mui/icons-material/SelfImprovement';
 import Grid from "@mui/material/Grid";
@@ -25,15 +18,11 @@ import Typography from "@mui/material/Typography";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 
-import * as posenet from '@tensorflow-models/posenet';
-import * as tf from '@tensorflow/tfjs';
-
 import cookie from "react-cookies";
 import axios from 'axios';
-import 'font-awesome/css/font-awesome.min.css';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
-const server = 'http://47.97.104.79/';
+const server = 'https://wellbeing.htcangelfund.com/api/';
 
 Chart.register(CategoryScale);
 Chart.register(LinearScale);
@@ -55,21 +44,20 @@ model.compile({
 });
 
 function Working_Yoga(){
-    const [topage, setTopage] = React.useState("")
-    const [showIndex, setShowIndex] = React.useState(0)
-    const [timer, setTimer] = React.useState(null)
-    const [status, setStatus] = React.useState("Not Start")
+    const location = useLocation();
+    const [exerciseID, setExerciseID] = React.useState(null);
+//    const [exerciseID, setExerciseID] = React.useState((location.search).replaceAll("?exercise=",""));
+    const [topage, setTopage] = React.useState("");
+    const [showIndex, setShowIndex] = React.useState(0);
+    const [timer, setTimer] = React.useState(null);
+    const [status, setStatus] = React.useState("Not Start");
     const [startComparison, setStartComparison] = React.useState(false);
     const [imagePose, setImagePose] = React.useState(null);
     const [videoPose, setVideoPose] = React.useState(null);
     const [net, setNet] = React.useState(null);
     const [similarityScores, setSimilarityScores] = React.useState([]);
     const [similarityScore, setSimilarityScore] = React.useState(null);
-    const [exerciseData, setExerciseData] = React.useState(null);
-    const [modelStores, setModelStores] = React.useState([]);
-    const [currentModel, setCurrentModel] = React.useState(null);
-    const [imageData, setImageData] = React.useState([]); // 用于存储图像URL和对应的标签
-    const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 }]);
+    const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 , imgDesc: ""}]);
     const [imageRefs, setImageRefs] = React.useState([]); // 初始化为空数组
     const [poseContainerRefs, setPoseContainerRefs] = React.useState([]); // 初始化为空数组
     const [shouldStart, setShouldStart] = React.useState(false);
@@ -90,7 +78,6 @@ function Working_Yoga(){
         setShowIndex(0)
         clearInterval(timer);
     }
-
     const pause = () => {
         setIsPaused(true);
     }
@@ -112,170 +99,283 @@ function Working_Yoga(){
     }
 
     //prepare the line chart
-//    const data = {
-//        labels: similarityScores.map((_, i) => i + 1),  // 生成标签
-//        datasets: [
-//          {
-//            label: 'Pose Similarity',
-//            data: similarityScores,
-//            fill: false,
-//            backgroundColor: 'rgb(75, 192, 192)',
-//            borderColor: 'rgba(75, 192, 192, 0.2)',
-//          },
-//        ],
-//    };
-//
-//    const options = {
-//        scales: {
-//            y: {
-//                type: 'linear',  // 显式指定类型
-//                beginAtZero: true,
-//            },
-//        },
-//    };
-
     const data = {
-      labels: similarityScores.map((_, i) => i + 1),
-      datasets: [
-        {
-          label: 'Pose Similarity',
-          data: similarityScores,
-          fill: false,
-          backgroundColor: 'rgb(75, 192, 192)',
-          borderColor: 'rgba(75, 192, 192, 0.2)',
-          yAxisID: 'y-axis-1',
-        },
-        {
-          label: 'Calories Burned',
-          data: caloriesBurnedArray,
-          fill: false,
-          backgroundColor: 'rgb(255, 99, 132)',
-          borderColor: 'rgba(255, 99, 132, 0.2)',
-          yAxisID: 'y-axis-2',
-        },
-      ],
+        labels: similarityScores.map((_, i) => i + 1),
+        datasets: [
+            {
+                label: 'Pose Similarity',
+                data: similarityScores,
+                fill: false,
+                backgroundColor: 'rgb(75, 192, 192)',
+                borderColor: 'rgba(75, 192, 192, 0.2)',
+                yAxisID: 'y-axis-1',
+            },
+            {
+                label: 'Calories Burned',
+                data: caloriesBurnedArray,
+                fill: false,
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgba(255, 99, 132, 0.2)',
+                yAxisID: 'y-axis-2',
+            },
+        ],
     };
 
     const options = {
-      scales: {
-        'y-axis-1': {
-          type: 'linear',
-          position: 'left',
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Pose Similarity',
-            color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
-          },
-          ticks: {
-            color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
-          }
+        scales: {
+            'y-axis-1': {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Pose Similarity',
+                    color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
+                },
+                ticks: {
+                    color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
+                }
+            },
+            'y-axis-2': {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Calories Burned',
+                    color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
+                },
+                ticks: {
+                    color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
+                }
+            }
         },
-        'y-axis-2': {
-          type: 'linear',
-          position: 'right',
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Calories Burned',
-            color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
-          },
-          ticks: {
-            color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
-          }
-        }
-      },
     };
 
     // 创建一个异步函数来获取和设置数据
     const fetchAndSetData = async () => {
-      try {
+        try {
             let difficultyFactor;
             switch (difficulty) {
                 case "Easy":
-                  difficultyFactor = 2;
-                  break;
+                    difficultyFactor = 2;
+                    break;
                 case "Medium":
-                  difficultyFactor = 3;
-                  break;
+                    difficultyFactor = 3;
+                    break;
                 case "Hard":
-                  difficultyFactor = 5;
-                  break;
+                    difficultyFactor = 5;
+                    break;
                 default:
-                  console.error("Invalid difficulty level");
-                  return;
+                    console.error("Invalid difficulty level");
+                    return;
             }
-            const exerciseID = '15';
-            const exerciseResponse = await axios.get(`http://47.97.104.79/exercise/exercises/${exerciseID}/`);
+
+            const exerciseResponse = await axios.get(server+"exercise/exercises/"+exerciseID+"/");
             const modelStores = exerciseResponse.data.model_stores;
-            console.log("exerciseResponse",exerciseResponse.data)
+            console.log("exerciseID",exerciseID)
+            console.log("exerciseResponse.data",exerciseResponse.data)
+            console.log("modelStores",modelStores)
             if (modelStores.length > 0) {
-              const fetchedModels = await Promise.all(modelStores.map(async (storeUrl) => {
-                const response = await axios.get(storeUrl);
-                return {
-                      label: response.data.name,
-                      imgPath: response.data.model_url,
-                      duration: response.data.duration * 1000 * difficultyFactor,
-                      calories: response.data.calories * difficultyFactor,
-                };
-              }));
+                const fetchedModels = await Promise.all(modelStores.map(async (storeUrl) => {
+                    const response = await axios.get(storeUrl);
+                    return {
+                        label: response.data.name,
+                        imgPath: response.data.model_url,
+                        duration: response.data.duration * 1000 * difficultyFactor,
+                        calories: response.data.calories * difficultyFactor,
+                        imgDesc: response.data.description
+                    };
+                }));
+                const sortedModels = fetchedModels.sort((a, b) => {
+                    return a.label.localeCompare(b.label);
+                });
+                console.log("setImgs fetchedModels",fetchedModels);
+                setImgs(sortedModels);
 
-              const sortedModels = fetchedModels.sort((a, b) => {
-                   return a.label.localeCompare(b.label);
-              });
-              console.log("setImgs fetchedModels",fetchedModels)
-              setImgs(sortedModels);
-
-              // 你也可以在这里更新其他依赖于 imgs 的状态
-              const newImageRefs = fetchedModels.map(() => React.createRef());
-              setImageRefs(newImageRefs);
-              setShowIndex(fetchedModels.length - 1);
-              const newPoseContainerRefs = fetchedModels.map(() => React.createRef());
-              setPoseContainerRefs(newPoseContainerRefs);
-              setfirstLoad(true)
+                // 你也可以在这里更新其他依赖于 imgs 的状态
+                const newImageRefs = fetchedModels.map(() => React.createRef());
+                setImageRefs(newImageRefs);
+                // setShowIndex(fetchedModels.length - 1);
+                const newPoseContainerRefs = fetchedModels.map(() => React.createRef());
+                setPoseContainerRefs(newPoseContainerRefs);
+                setfirstLoad(true)
             }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     };
 
     const circularProgressStyle = {
-      color: 'transparent',
-      '& .MuiCircularProgress-circle': {
-        stroke: '#FF5733',
-        strokeLinecap: 'round',
-        strokeWidth: '6px',  // 你的边框宽度
-      }
+        color: 'transparent',
+        '& .MuiCircularProgress-circle': {
+            stroke: '#FF5733',
+            strokeLinecap: 'round',
+            strokeWidth: '6px',  // 你的边框宽度
+        }
     };
 
+    useEffect(() => {
+        if(!cookie.load('user_id')){
+            history.push({pathname:"/SignIn",state:{}});
+            setTopage("SignIn")
+        }
+    }, []);
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const exerciseParam = params.get('exercise');
+        if (exerciseParam) {
+          setExerciseID(exerciseParam);
+        } else {
+          console.error("exerciseID 不存在");
+    }
+  }, [location.search]);  // 依赖于 location.search
     // 在 useEffect 中调用该函数
     useEffect(() => {
         console.log("fetchAndSetData start")
-        fetchAndSetData();
-    }, []);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
+        if (exerciseID) {
+            console.log("exerciseID fetchAndSetData",exerciseID);
+            // exerciseID 有值，可以运行代码
+            fetchAndSetData();
+        } else {
+            // exerciseID 没有值，执行其他逻辑或者报错
+            console.error("exerciseID 不存在");
+        }
+    }, [exerciseID]);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
 
-//    useEffect(()=>{
-//        if(!cookie.load('user_id')){
-//            history.push({pathname:"/SignIn",state:{}});
-//            setTopage("SignIn")
-//        }
-//    },[])
+//    useEffect(() => {
+//        setExerciseID("15")
+//        console.log("Debug")
+//    }, []);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
+
+    useEffect(() => {
+        async function loadPoseNetModel() {
+      // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
+      const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
+          const base64WeightsArray = await response.json();
+
+          // 将 Base64 编码的字符串解码为 ArrayBuffer
+          const weightBuffers = base64WeightsArray.map(base64Weights => {
+            const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
+            return binaryWeights.buffer;
+          });
+
+          const model = await posenet.load({
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.75,
+            modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
+            fetchFunc: async (url) => {
+              console.log(url)
+              const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
+              if (shardIndex) {
+                const index = parseInt(shardIndex[1]) - 1;
+                console.log(weightBuffers[index])
+                return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
+              } else {
+                return fetch(url);
+              }
+            }
+          });
+
+          setNet(model);
+        }
+
+        loadPoseNetModel();
+      }, []);
+
+    useEffect(() => {
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // 当视频数据加载完成时调用的函数
+        function handleVideoLoaded() {
+            //console.log("Video data loaded.");
+            async function initializePoseNet() {
+                // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
+                const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
+                const base64WeightsArray = await response.json();
+
+                // 将 Base64 编码的字符串解码为 ArrayBuffer
+                const weightBuffers = base64WeightsArray.map(base64Weights => {
+                    const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
+                    return binaryWeights.buffer;
+                });
+
+                const net = await posenet.load({
+                    architecture: 'MobileNetV1',
+                    outputStride: 16,
+                    multiplier: 0.75,
+                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
+                    fetchFunc: async (url) => {
+                      console.log(url)
+                      const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
+                      if (shardIndex) {
+                        const index = parseInt(shardIndex[1]) - 1;
+                        console.log(weightBuffers[index])
+                        return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
+                      } else {
+                        return fetch(url);
+                      }
+                    }
+                  });
+
+//                const net = await posenet.load({
+//                    architecture: 'MobileNetV1',
+//                    outputStride: 16,
+//                    multiplier: 0.75,
+//                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
+//                    // inputResolution: 801
+//                });
+
+                async function detectPose() {
+                    const pose = await net.estimateSinglePose(video, {
+                        maxDetections: 2,
+                        scoreThreshold: 0.5,
+                        nmsRadius: 30
+                    });
+                    setVideoPose(pose); // 设置视频姿态
+                    const now = new Date();
+                    const formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
+                    // 这里我们假设 video.width 是视频的宽度
+                    const mirroredKeypoints = mirrorKeypoints(pose.keypoints, video.width);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    drawKeypoints(mirroredKeypoints, ctx); // 使用镜像后的关键点
+                    drawSkeleton(mirroredKeypoints, ctx);  // 使用镜像后的关键点
+                    requestAnimationFrame(detectPose);
+                }
+                detectPose();
+            }
+            initializePoseNet();
+        }
+        // 获取摄像头的视频流
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+                //console.log("Video stream : " , stream);
+                video.addEventListener('loadeddata', handleVideoLoaded);
+            })
+            .catch((err) => {
+                console.error("Error accessing the camera", err);
+            });
+        // 清除事件监听器
+        return () => {
+            video.removeEventListener('loadeddata', handleVideoLoaded);
+        };
+    }, []);
 
     // 用于图片轮播的 useEffect
     useEffect(() => {
         let imageIntervalId;
-
         // 当有有效的图片索引，并且图片数组不为空时
         if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
             const currentDuration = imgs[showIndex].duration;
-
             // 设置图片轮播的定时器
             imageIntervalId = setInterval(() => {
                 setShowIndex((prevIndex) => prevIndex + 1);
             }, currentDuration +5000);
         }
-
-
         // 清除图片轮播的定时器
         return () => {
             clearInterval(imageIntervalId);
@@ -290,10 +390,8 @@ function Working_Yoga(){
     //开始倒计时
     useEffect(() => {
         let countdownIntervalId;
-
         if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length) {
             // 初始化倒计时
-
             setStartComparison(false)
             setReadyCountdown(5);
             setShowCountdown(true); // 显示倒计时
@@ -307,7 +405,6 @@ function Working_Yoga(){
                 });
             }, 1000);
         }
-
         // 清除倒计时的定时器
         return () => {
             clearInterval(countdownIntervalId);
@@ -317,116 +414,271 @@ function Working_Yoga(){
     // 用于倒计时的 useEffect
     useEffect(() => {
         let countdownIntervalId;
-
         if (startComparison && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
             setCountdown(Math.floor(imgs[showIndex].duration / 1000));  // 初始化倒计时
-
             // 设置倒计时的定时器
             countdownIntervalId = setInterval(() => {
                 setCountdown((prevCountdown) => prevCountdown - 1);
             }, 1000);
         }
-
         // 清除倒计时的定时器
         return () => {
             clearInterval(countdownIntervalId);
         };
     }, [showIndex, imgs, startComparison, isPaused]);
 
-//使用神经网络进行动作判断
-// Function to convert keypoints to 34-dimension array
+    // 当 showIndex 或 PoseNet 模型更改时，获取新的图像姿态
+    useEffect(() => {
+        async function estimatePoseFromImage() {
+            const now = new Date();
+            let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
+            //console.log("estimatePoseFromImage Start : ", formattedTime,showIndex,imageRefs[showIndex]);
+            if (net && imageRefs && imageRefs[showIndex]) {
+                const imageElement = imageRefs[showIndex].current;
+                if (imageElement) {
+                    const pose = await net.estimateSinglePose(imageElement);
+                    setImagePose(pose);
+                    formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
+                    console.log("estimatePose pose : ", formattedTime);
+                }
+            }
+        }
+        estimatePoseFromImage();
+    }, [showIndex, net, imageRefs]);
+
+    // Calculate the similarity
+    useEffect(() => {
+        const now = new Date();
+        let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
+        //console.log("Video pose Timestamp:", formattedTime);
+        if (startComparison && videoPose && imagePose)  {  // 确保 poseFromImage 已经被设置
+            formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
+            console.log("Start Compare Timestamp:", formattedTime);
+            console.log("useEffect trigger");
+            console.log("poseFromImage:", imagePose);
+            console.log("poseFromVideo:", videoPose);
+            let tmpsimilarityScore = poseSimilarity(videoPose, imagePose);
+            //使用全连接的前馈神经网络（Feedforward Neural Network, FNN）
+            //let tmpsimilarityScore = FNNposeSimilarity(videoPose, imagePose);
+            // 计算每一帧的平均卡路里
+            const framesPerSecond = 30; // 假设视频是30fps
+            if (imgs && imgs[showIndex] && typeof imgs[showIndex].duration === 'number' && typeof imgs[showIndex].calories === 'number') {
+                const durationInSeconds = imgs[showIndex].duration / 1000; // 当前动作的持续时间（以秒为单位）
+                const caloriesPerFrame = imgs[showIndex].calories / (durationInSeconds * framesPerSecond);
+                console.log("imgs[showIndex].calories ", showIndex, imgs[showIndex].calories);
+                console.log("durationInSeconds", durationInSeconds);
+                console.log("average caloriesPerFrame", caloriesPerFrame);
+                const currentFrameCalories = caloriesPerFrame * tmpsimilarityScore/100; // 使用相似度进行加权
+                console.log("tmpsimilarityScore & currentFrameCalories ", tmpsimilarityScore, currentFrameCalories);
+                const newCaloriesBurnedArray = [...caloriesBurnedArray, (caloriesBurnedArray.slice(-1)[0] || 0) + currentFrameCalories];
+                setCaloriesBurnedArray(newCaloriesBurnedArray);
+            } else {
+                console.warn("imgs or imgs[showIndex] is undefined, or missing duration or calories");
+            }
+        }
+    }, [videoPose, imagePose,shouldStart]);
+
+    // 假设这是你计算相似度的函数或效果
+    useEffect(() => {
+        if (!shouldStart) return;
+        // 假设 similarityScore 是你计算出的相似度分数
+        // 根据难度设置阈值
+        let thresholdA, thresholdB, thresholdC;
+        switch (difficulty) {
+            case "Easy":
+                thresholdA = 50;
+                thresholdB = 60;
+                thresholdC = 70;
+                break;
+            case "Medium":
+                thresholdA = 60;
+                thresholdB = 70;
+                thresholdC = 80;
+                break;
+            case "Hard":
+                thresholdA = 70;
+                thresholdB = 80;
+                thresholdC = 90;
+                break;
+            default:
+                console.error("Invalid difficulty level");
+                return;
+        }
+        if (similarityScore < thresholdA) {
+            setMiss(miss + 1);
+        } else if (similarityScore >= thresholdA && similarityScore < thresholdB) {
+            setGood(good + 1);
+        } else if (similarityScore >= thresholdB && similarityScore < thresholdC) {
+            setGreat(great + 1);
+        } else {
+            setAwesome(awesome + 1);
+        }
+    }, [similarityScore]); // 这个 useEffect 依赖于 similarityScore
+
+    useEffect(() => {
+        if (shouldStart) return;
+        console.log("similarityScores",similarityScores)
+        onCarouselComplete(similarityScores)
+     }, [shouldStart]);
+
+    //when the exercise is end, then show the total score of the exercise
+    useEffect(() => { }, [similarityScore]);
+
+    // 计算平均值和标准差
+    function calculateMeanAndStdDeviation(data) {
+        const n = data.length;
+        const mean = data.reduce((acc, val) => acc + val, 0) / n;
+        const stdDeviation = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n);
+        return { mean, stdDeviation };
+    }
+
+    // 计算Z分数
+    function calculateZScores(data, mean, stdDeviation) {
+        return data.map(x => (x - mean) / stdDeviation);
+    }
+
+    // 计算星级评分
+    function calculateStarRating(zScores) {
+        let stars = 0;
+        let confidential = 0;
+        const n = zScores.length;
+        switch (difficulty) {
+            case "Easy":
+                confidential = 0;
+                break;
+            case "Medium":
+                confidential = 0.5;
+                break;
+            case "Hard":
+                confidential = 1;
+                break;
+            default:
+                console.error("Invalid difficulty level");
+                return;
+        }
+        for (let i = 0; i < n; i++) {
+            if (zScores[i] > confidential) {
+                stars++;
+            }
+        }
+        return Math.min(Math.round((stars / n) * 5), 5);
+    }
+
+    // 显示星星
+    function displayStars(stars) {
+        const starContainer = document.getElementById('star-container');
+        let starHTML = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= stars) {
+                starHTML += '<span class="fa fa-star checked"></span>';
+            } else {
+                starHTML += '<span class="fa fa-star"></span>';
+            }
+        }
+        // console.log("starHTML",starHTML);
+        starContainer.innerHTML = starHTML;
+    }
+
+    // 在图片轮播完成后调用此函数
+    function onCarouselComplete(similarityScores) {
+        const { mean, stdDeviation } = calculateMeanAndStdDeviation(similarityScores);
+        const zScores = calculateZScores(similarityScores, mean, stdDeviation);
+        // console.log("zScores ",zScores)
+        const stars = calculateStarRating(zScores);
+        // console.log("stars ",stars)
+        displayStars(stars);
+    }
+
+    //使用神经网络进行动作判断
+    // Function to convert keypoints to 34-dimension array
     function FNNkeypoints_to_array(keypoints) {
-      let arr = [];
-      for (let i = 0; i < keypoints.length; i++) {
-        arr.push(keypoints[i].position.x, keypoints[i].position.y);
-      }
-      return arr;
+        let arr = [];
+        for (let i = 0; i < keypoints.length; i++) {
+            arr.push(keypoints[i].position.x, keypoints[i].position.y);
+        }
+        return arr;
     }
 
     function FNNposeSimilarity(pose1, pose2) {
-      // ... existing code
-      const standardPoseArray = FNNkeypoints_to_array(pose1.keypoints);
-      const videoPoseArray = FNNkeypoints_to_array(pose2.keypoints);
-      // 将输入转换为模型所需的形状 [2, 34]
-      const inputData = tf.tensor2d([standardPoseArray, videoPoseArray]);
-      const standardPoseTensor = tf.tensor(standardPoseArray, [1, 34]);
-      const videoPoseTensor = tf.tensor(videoPoseArray, [1, 34]);
+        // ... existing code
+        const standardPoseArray = FNNkeypoints_to_array(pose1.keypoints);
+        const videoPoseArray = FNNkeypoints_to_array(pose2.keypoints);
+        // 将输入转换为模型所需的形状 [2, 34]
+        const inputData = tf.tensor2d([standardPoseArray, videoPoseArray]);
+        const standardPoseTensor = tf.tensor(standardPoseArray, [1, 34]);
+        const videoPoseTensor = tf.tensor(videoPoseArray, [1, 34]);
 
-      // Assume you have a trained model
-      // 使用模型进行预测
-      const similarityTensor = model.predict(inputData);
-      const similarityArray = similarityTensor.dataSync();
-      const similarityScore = similarityArray[0] * 100;
+        // Assume you have a trained model
+        // 使用模型进行预测
+        const similarityTensor = model.predict(inputData);
+        const similarityArray = similarityTensor.dataSync();
+        const similarityScore = similarityArray[0] * 100;
 
-      //const similarityScore = model.predict(tf.stack([standardPoseTensor, videoPoseTensor])).dataSync()[0];
+        //const similarityScore = model.predict(tf.stack([standardPoseTensor, videoPoseTensor])).dataSync()[0];
         // 添加新的相似度分数到数组中
-      setSimilarityScores(prevScores => [...prevScores, similarityScore]);
-      setSimilarityScore(similarityScore);
-      console.log("FNN Similarity:", similarityScore);
-      return similarityScore;
-
-      // Now similarityScore contains the similarity between the standard pose and the video pose.
-
-      // ... rest of your function
+        setSimilarityScores(prevScores => [...prevScores, similarityScore]);
+        setSimilarityScore(similarityScore);
+        console.log("FNN Similarity:", similarityScore);
+        return similarityScore;
     }
 
-// Normalize keypoints based on the nose position
+    // Normalize keypoints based on the nose position
     function normalize_keypoints(keypoints) {
-      console.log('keypoints:', keypoints);
-      const nose_x = keypoints[0].position.x;
-      const nose_y = keypoints[0].position.y;
-      const normalized_keypoints = keypoints.map(keypoint => {
-        return {
-          position: {
-            x: keypoint.position.x - nose_x,
-            y: keypoint.position.y - nose_y
-          },
-          part: keypoint.part
-        };
-      });
-      return normalized_keypoints;
+        console.log('keypoints:', keypoints);
+        const nose_x = keypoints[0].position.x;
+        const nose_y = keypoints[0].position.y;
+        const normalized_keypoints = keypoints.map(keypoint => {
+            return {
+                position: {
+                    x: keypoint.position.x - nose_x,
+                    y: keypoint.position.y - nose_y
+                },
+                part: keypoint.part
+            };
+        });
+        return normalized_keypoints;
     }
 
     // Calculate Euclidean distance between two points
     function euclidean_distance(pt1, pt2) {
-      return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
+        return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
     }
 
     // Calculate similarity between two poses
     function pose_similarity(normalized_pose1, normalized_pose2) {
-      let distance = 0;
-      for (let i = 0; i < normalized_pose1.length; i++) {
-        const keypoint1 = normalized_pose1[i];
-        const keypoint2 = normalized_pose2[i];
-        distance += euclidean_distance(keypoint1.position, keypoint2.position);
-      }
-      return distance / normalized_pose1.length;
+        let distance = 0;
+        for (let i = 0; i < normalized_pose1.length; i++) {
+            const keypoint1 = normalized_pose1[i];
+            const keypoint2 = normalized_pose2[i];
+            distance += euclidean_distance(keypoint1.position, keypoint2.position);
+        }
+        return distance / normalized_pose1.length;
     }
+
     // Calculate cosine similarity between two vectors
     function cosine_similarity(a, b) {
-      let dotProduct = 0;
-      let magnitudeA = 0;
-      let magnitudeB = 0;
-      for (let i = 0; i < a.length; i++) {
-        dotProduct += (a[i] * b[i]);
-        magnitudeA += Math.pow(a[i], 2);
-        magnitudeB += Math.pow(b[i], 2);
-      }
-      magnitudeA = Math.sqrt(magnitudeA);
-      magnitudeB = Math.sqrt(magnitudeB);
-      return dotProduct / (magnitudeA * magnitudeB);
+        let dotProduct = 0;
+        let magnitudeA = 0;
+        let magnitudeB = 0;
+        for (let i = 0; i < a.length; i++) {
+            dotProduct += (a[i] * b[i]);
+            magnitudeA += Math.pow(a[i], 2);
+            magnitudeB += Math.pow(b[i], 2);
+        }
+        magnitudeA = Math.sqrt(magnitudeA);
+        magnitudeB = Math.sqrt(magnitudeB);
+        return dotProduct / (magnitudeA * magnitudeB);
     }
 
     // Convert normalized keypoints to a simple array (ignoring the 'part' labels)
     function keypoints_to_array(keypoints) {
-      let arr = [];
-      for (let i = 0; i < keypoints.length; i++) {
-        arr.push(keypoints[i].position.x, keypoints[i].position.y);
-      }
-      return arr;
+        let arr = [];
+        for (let i = 0; i < keypoints.length; i++) {
+            arr.push(keypoints[i].position.x, keypoints[i].position.y);
+        }
+        return arr;
     }
 
-//
     function poseSimilarity(pose1, pose2) {
         console.log('Pose 1:', pose1);
         console.log('Pose 2:', pose2);
@@ -445,52 +697,10 @@ function Working_Yoga(){
         setSimilarityScores(prevScores => [...prevScores, similarityScore]);
         setSimilarityScore(similarityScore);
         return similarityScore;
-
-        //使用欧氏距离判定相似度
-//        const similarity = pose_similarity(normalized_pose1, normalized_pose2);
-//        console.log('Normalized Pose 1:', normalized_pose1);
-//        console.log('Normalized Pose 2:', normalized_pose2);
-//        console.log('Similarity:', similarity);
     }
 
-//    useEffect(()=>{
-//        const intervalId = counterValid && setInterval(() =>
-//            setShowIndex(si=>si+1), 20000
-//        );
-//        return () => clearInterval(intervalId)
-//    },[counterValid])
-
-    useEffect(() => {
-        async function loadPoseNetModel() {
-          const model = await posenet.load();
-          setNet(model);
-        }
-        loadPoseNetModel();
-      }, []);
-
-      // 当 showIndex 或 PoseNet 模型更改时，获取新的图像姿态
-      useEffect(() => {
-        async function estimatePoseFromImage() {
-          const now = new Date();
-          let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace
-          (/:/g, '');
-          //console.log("estimatePoseFromImage Start : ", formattedTime,showIndex,imageRefs[showIndex]);
-          if (net && imageRefs && imageRefs[showIndex]) {
-            const imageElement = imageRefs[showIndex].current;
-            if (imageElement) {
-              const pose = await net.estimateSinglePose(imageElement);
-              setImagePose(pose);
-              formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-              console.log("estimatePose pose : ", formattedTime);
-            }
-          }
-        }
-        estimatePoseFromImage();
-      }, [showIndex, net, imageRefs]);
-
-
     function mirrorKeypoints(keypoints, videoWidth) {
-       // console.log("Mirroring keypoints for a new frame");
+        // console.log("Mirroring keypoints for a new frame");
         return keypoints.map(keypoint => ({
             ...keypoint,
             position: {
@@ -526,358 +736,110 @@ function Working_Yoga(){
         }
     }
 
-
-    useEffect(() => {
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        // 当视频数据加载完成时调用的函数
-        function handleVideoLoaded() {
-            //console.log("Video data loaded.");
-            async function initializePoseNet() {
-                const net = await posenet.load({
-                    architecture: 'MobileNetV1',
-                    outputStride: 16,
-                    multiplier: 0.75,
-                   // inputResolution: 801
-                });
-
-                async function detectPose() {
-                    const pose = await net.estimateSinglePose(video,{
-                      maxDetections: 2,
-                      scoreThreshold: 0.5,
-                      nmsRadius: 30
-                    });
-
-                    setVideoPose(pose); // 设置视频姿态
-
-                    const now = new Date();
-                    const formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString()
-                    .slice(0, 8).replace(/:/g, '');
-
-                    // 这里我们假设 video.width 是视频的宽度
-                    const mirroredKeypoints = mirrorKeypoints(pose.keypoints, video.width);
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    drawKeypoints(mirroredKeypoints, ctx); // 使用镜像后的关键点
-                    drawSkeleton(mirroredKeypoints, ctx);  // 使用镜像后的关键点
-
-                    requestAnimationFrame(detectPose);
-                }
-
-                detectPose();
-            }
-
-            initializePoseNet();
-        }
-
-
-        // 获取摄像头的视频流
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-                //console.log("Video stream : " , stream);
-                video.addEventListener('loadeddata', handleVideoLoaded);
-            })
-            .catch((err) => {
-                console.error("Error accessing the camera", err);
-            });
-
-        // 清除事件监听器
-        return () => {
-            video.removeEventListener('loadeddata', handleVideoLoaded);
-        };
-
-    }, []);
-
-    // Calculate the similarity
-    useEffect(() => {
-      const now = new Date();
-      let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace
-      (/:/g, '');
-
-      //console.log("Video pose Timestamp:", formattedTime);
-      if (startComparison && videoPose && imagePose)  {  // 确保 poseFromImage 已经被设置
-          formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace
-          (/:/g, '');
-
-          console.log("Start Compare Timestamp:", formattedTime);
-          console.log("useEffect trigger");
-          console.log("poseFromImage:", imagePose);
-          console.log("poseFromVideo:", videoPose);
-          let tmpsimilarityScore = poseSimilarity(videoPose, imagePose);
-          //使用全连接的前馈神经网络（Feedforward Neural Network, FNN）
-          //let tmpsimilarityScore = FNNposeSimilarity(videoPose, imagePose);
-          // 计算每一帧的平均卡路里
-          const framesPerSecond = 30; // 假设视频是30fps
-          if (imgs && imgs[showIndex] && typeof imgs[showIndex].duration === 'number' && typeof imgs[showIndex].calories === 'number') {
-              const durationInSeconds = imgs[showIndex].duration / 1000; // 当前动作的持续时间（以秒为单位）
-              const caloriesPerFrame = imgs[showIndex].calories / (durationInSeconds * framesPerSecond);
-              console.log("imgs[showIndex].calories ", showIndex, imgs[showIndex].calories);
-              console.log("durationInSeconds", durationInSeconds);
-              console.log("average caloriesPerFrame", caloriesPerFrame);
-              const currentFrameCalories = caloriesPerFrame * tmpsimilarityScore/100; // 使用相似度进行加权
-              console.log("tmpsimilarityScore & currentFrameCalories ", tmpsimilarityScore, currentFrameCalories);
-              const newCaloriesBurnedArray = [...caloriesBurnedArray, (caloriesBurnedArray.slice(-1)[0] || 0) + currentFrameCalories];
-              setCaloriesBurnedArray(newCaloriesBurnedArray);
-            } else {
-              console.warn("imgs or imgs[showIndex] is undefined, or missing duration or calories");
-            }
-      }
-    }, [videoPose, imagePose,shouldStart]);
-
-    // 假设这是你计算相似度的函数或效果
-    useEffect(() => {
-      if (!shouldStart) return;
-      // 假设 similarityScore 是你计算出的相似度分数
-
-      // 根据难度设置阈值
-      let thresholdA, thresholdB, thresholdC;
-        switch (difficulty) {
-            case "Easy":
-              thresholdA = 50;
-              thresholdB = 60;
-              thresholdC = 70;
-              break;
-            case "Medium":
-              thresholdA = 60;
-              thresholdB = 70;
-              thresholdC = 80;
-              break;
-            case "Hard":
-              thresholdA = 70;
-              thresholdB = 80;
-              thresholdC = 90;
-              break;
-            default:
-              console.error("Invalid difficulty level");
-              return;
-        }
-
-        if (similarityScore < thresholdA) {
-            setMiss(miss + 1);
-          } else if (similarityScore >= thresholdA && similarityScore < thresholdB) {
-            setGood(good + 1);
-          } else if (similarityScore >= thresholdB && similarityScore < thresholdC) {
-            setGreat(great + 1);
-          } else {
-            setAwesome(awesome + 1);
-        }
-    }, [similarityScore]); // 这个 useEffect 依赖于 similarityScore
-
-    //when the exercise is end, then show the total score of the exercise
-    useEffect(() => {
-
-    }, [similarityScore]);
-
-    // 计算平均值和标准差
-    function calculateMeanAndStdDeviation(data) {
-        const n = data.length;
-        const mean = data.reduce((acc, val) => acc + val, 0) / n;
-        const stdDeviation = Math.sqrt(data.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n);
-        return { mean, stdDeviation };
-    }
-
-    // 计算Z分数
-    function calculateZScores(data, mean, stdDeviation) {
-        return data.map(x => (x - mean) / stdDeviation);
-    }
-
-    // 计算星级评分
-    function calculateStarRating(zScores) {
-        let stars = 0;
-        let confidential = 0;
-        const n = zScores.length;
-        switch (difficulty) {
-            case "Easy":
-              confidential = 0;
-              break;
-            case "Medium":
-              confidential = 0.5;
-              break;
-            case "Hard":
-              confidential = 1;
-              break;
-            default:
-              console.error("Invalid difficulty level");
-              return;
-        }
-        for (let i = 0; i < n; i++) {
-            if (zScores[i] > confidential) {
-                stars++;
-            }
-        }
-        return Math.min(Math.round((stars / n) * 5), 5);
-    }
-
-    // 显示星星
-    function displayStars(stars) {
-        const starContainer = document.getElementById('star-container');
-        let starHTML = '';
-        for (let i = 1; i <= 5; i++) {
-            if (i <= stars) {
-                starHTML += '<span class="fa fa-star checked"></span>';
-            } else {
-                starHTML += '<span class="fa fa-star"></span>';
-            }
-        }
-//        console.log("starHTML",starHTML);
-        starContainer.innerHTML = starHTML;
-    }
-
-    // 在图片轮播完成后调用此函数
-    function onCarouselComplete(similarityScores) {
-        const { mean, stdDeviation } = calculateMeanAndStdDeviation(similarityScores);
-        const zScores = calculateZScores(similarityScores, mean, stdDeviation);
-//        console.log("zScores ",zScores)
-        const stars = calculateStarRating(zScores);
-//        console.log("stars ",stars)
-        displayStars(stars);
-    }
-
-    useEffect(() => {
-        if (shouldStart) return;
-        console.log("similarityScores",similarityScores)
-        onCarouselComplete(similarityScores)
-
-     }, [shouldStart]);
-
     if (topage === "") {
         return (
             <div className="Working_Yoga">
                 <AppHeader topage={topage} setTopage={setTopage}/>
-                <Grid container direction="row" alignItems="flex-start" justifyContent="center" sx={{mt: 5, mb: 4}}>
-                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center"
-                          sx={{width: 700, mr: 5, ml: 1}}>
+                <Grid container direction="row" alignItems="flex-start" justifyContent="center" sx={{mt: 10, mb: 4, width: "100%"}}>
+                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center" sx={{width: "54%" }}>
                         <Grid container item direction="row" alignItems="center" justifyContent="flex-start">
                             <VideoCameraFrontIcon color={"error"} fontSize={"large"} sx={{mr: 2}}/>
-                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                                 LIVE Camera
                             </Typography>
                         </Grid>
-                        <Card sx={{width: 680, mt: 3, mb: 2}}>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center">
-                                <Grid container item direction="row" alignItems="center" justifyContent="flex-start"
-                                      sx={{mt: 2, mb: 1}}>
-                                    <Box sx={{
-                                                position: 'relative',
-                                                display: 'inline-flex',
-                                                width: '120px',
-                                                height: '120px',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}>
-                                                <CircularProgress
-                                                    variant="determinate"
-                                                    value={100}
-                                                    size={70}
-                                                    sx={{
-                                                        color: 'rgba(211, 211, 211, 0.5)', // 半透明的灰色
-                                                        position: 'absolute',
-                                                        '& circle': {
-                                                            strokeWidth: '4px'  // 设置圆圈的宽度
-                                                        }
-                                                    }}
-                                                />
-                                                <CircularProgress
-                                                    variant="determinate"
-                                                    value={Math.min(100, Math.round((showIndex + 1) / imgs.length * 100))}
-                                                    color={"error"}
-                                                    size={70}
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        '& circle': {
-                                                            strokeWidth: '4px'  // 设置圆圈的宽度
-                                                        }
-                                                    }}
-                                                />
-                                                <Box sx={{
+                        <Card sx={{width: '95%', height:640, mt: 3, mb: 2}}>
+                            <Grid container item direction="column" alignItems="center" justifyContent="flex-start" sx={{width: "100%"}}>
+                                <Grid container item direction="row" alignItems="center" justifyContent="space-between" sx={{mb: 1, width: "100%"}}>
+                                    <Grid container item direction="row" alignItems="center" justifyContent="flex-start" sx={{ width:"50%", mt:2 }}>
+                                        <Box sx={{position: 'relative', display: 'inline-flex', ml: 3}}>
+                                            <CircularProgress variant="determinate"
+                                                              value={status === "Not Start" ? 0 : Math.min(100, Math.round((showIndex + 1) / imgs.length * 100))}
+                                                              color={"error"}/>
+                                            <Box
+                                                sx={{
+                                                    top: 0,
+                                                    left: 0,
+                                                    bottom: 0,
+                                                    right: 0,
+                                                    position: 'absolute',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
-                                                }}>
-                                                    <Typography variant="caption" component="div" color="text.secondary">
-                                                        Progress
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                    <Typography variant="h6"
-                                                sx={{fontWeight: 'bold', lineHeight: 1, m: 2, fontFamily: 'HWE'}}>
-                                        {showIndex <= imgs.length - 1 ? imgs[showIndex].label : imgs[0].label}
-                                    </Typography>
-                                    {showIndex < imgs.length - 1
-                                        ? <Typography variant="h6"
-                                                        sx={{
-                                                            fontWeight: 'bold',
-                                                            lineHeight: 1.5,
-                                                            ml: 23,
-                                                            fontFamily: 'HWE',
-                                                            whiteSpace: 'nowrap'  // 防止换行
-                                                        }}
+                                                }}
                                             >
-                                                >> Next: {imgs[showIndex + 1].label}
+                                                <Typography variant="caption" component="div" color="text.secondary">
+                                                    {status === "Not Start" ? 0 : Math.min(100, Math.round((showIndex + 1) / imgs.length * 100))} %
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1, m: 2, fontFamily: 'MSYH'}}>
+                                            {showIndex <= imgs.length - 1 ? imgs[showIndex].label : imgs[0].label}
                                         </Typography>
-                                        : <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1, ml: 45, fontFamily: 'HWE'}}> </Typography>
+                                    </Grid>
+                                    {showIndex < imgs.length - 1
+                                        ? <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1, fontFamily: 'MSYH', mr:3}}>
+                                            >> Next: {imgs[showIndex + 1].label}
+                                        </Typography>
+                                        : null
                                     }
                                 </Grid>
-                                <Box sx={{ width: "640px", height: "567px", position: 'relative' }}>
-                                     <div style={{display: 'flex', justifyContent: 'space-between'}}>
-                                          <p style={{color: 'red', fontWeight: 'bold'}}>Miss: {miss}</p>
+                                <Box sx={{ width: 640, height: 490, position: 'relative' }}>
+                                    <Grid container item direction="row" alignItems="center" justifyContent="space-between" sx={{mb: 1, width: "100%"}}>
+                                          <p style={{color: '#EE270C', fontWeight: 'bold'}}>Miss: {miss}</p>
                                           <p style={{color: 'green', fontWeight: 'bold'}}>Good: {good}</p>
                                           <p style={{color: 'blue', fontWeight: 'bold'}}>Great: {great}</p>
                                           <p style={{color: 'purple', fontWeight: 'bold'}}>Awesome: {awesome}</p>
-                                     </div>
-                                     {showCongratulations && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                left: '50%',
-                                                fontSize: '48px',
-                                                color: 'gold',
-                                                textAlign: 'center',
-                                                marginTop: '40px',
-                                                transform: 'translate(-50%, -50%)',
-                                                zIndex: 1000  // 设置一个高 z-index
-                                            }}>
-                                                Congratulation!
-                                            </div>
-                                     )}
-                                     {!shouldStart && <div id="star-container"></div>}
-                                     {showCountdown && (
-                                            <div style={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                left: '50%',
-                                                transform: 'translate(-50%, -50%)',
-                                                fontSize: '36px',
-                                                color: 'red',  // 改为黑色以形成对比
-                                                zIndex: 1000  // 设置一个高 z-index
-                                            }}>
-                                                {Readycountdown > 1 ?  `Ready in ${Readycountdown} seconds` : 'Go!'}
-                                            </div>
-                                     )}
-                                     <div style={{position: 'relative'}}>
-                                        <video id="webcam" width="640" height="480" autoPlay style={{position: 'absolute', top: 0, left: 0, transform: 'scaleX(-1)'}}></video>
-                                        <canvas id="canvas" width="640" height="480" style={{position: 'absolute', top: 0, left: 0}}></canvas>
+                                    </Grid>
+                                    {showCongratulations && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            fontSize: '48px',
+                                            color: 'gold',
+                                            textAlign: 'center',
+                                            marginTop: '40px',
+                                            transform: 'translate(-50%, -50%)',
+                                            zIndex: 1000  // 设置一个高 z-index
+                                        }}>
+                                            Congratulation!
+                                        </div>
+                                    )}
+                                    {!shouldStart && <div id="star-container"></div>}
+                                    {showCountdown && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '50%',
+                                            left: '50%',
+                                            transform: 'translate(-50%, -50%)',
+                                            fontSize: '36px',
+                                            color: 'red',  // 改为黑色以形成对比
+                                            zIndex: 1000  // 设置一个高 z-index
+                                        }}>
+                                            {Readycountdown > 1 ?  `Ready in ${Readycountdown} seconds` : 'Go!'}
+                                        </div>
+                                    )}
+                                    <div style={{position: 'relative'}}>
+                                        <video id="webcam" width="640" height="420" autoPlay style={{position: 'absolute', top: 0, left: 0, transform: 'scaleX(-1)'}}></video>
+                                        <canvas id="canvas" width="640" height="420" style={{position: 'absolute', top: 0, left: 0}}></canvas>
                                     </div>
                                 </Box>
-                                <Grid container item direction="row" alignItems="center" justifyContent="center"
-                                      sx={{mt: 2, mb: 3}}>
-
+                                <Grid container item direction="row" alignItems="center" justifyContent="center" sx={{mt: 2, mb: 3}}>
                                     <Button variant={"outlined"} color={'error'} size="large"
-                                            sx={{fontWeight: 'bold', fontFamily: 'HWE'}}
+                                            sx={{fontWeight: 'bold', fontFamily: 'MSYH'}}
                                             onClick={start}
                                     >
                                         Start
                                     </Button>
                                     <Button variant={"outlined"} color={'error'} size="large"
-                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'HWE'}}
+                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
                                             onClick={stop}
                                     >
                                         Pause
                                     </Button>
                                     <Button variant={"outlined"} color={"error"} size="large"
-                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'HWE'}}
+                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
                                             onClick={stop}
                                     >
                                         Stop
@@ -886,76 +848,93 @@ function Working_Yoga(){
                             </Grid>
                         </Card>
                     </Grid>
-                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center"
-                          sx={{width: 550}}>
+                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center" sx={{width: "44%"}}>
                         <Grid container item direction="row" alignItems="center" justifyContent="flex-start">
                             <SelfImprovementIcon color={"error"} fontSize={"large"} sx={{mr: 2}}/>
-                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'HWE'}}>
+                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                                 AI Coach
                             </Typography>
                         </Grid>
-                        <Card sx={{width: 500, mt: 3, mb: 2}}>
-                            <Grid container item direction="column" alignItems="center" justifyContent="center">
-                                <Grid item sx={{mt: 1}}>
-                                    <div className="ReactCarousel">
-                                        <div className="contain">
-                                            {showIndex===imgs.length
-                                            ? <ul className="ul"> <li className= 'show' key={0}><img src={imgs[0].imgPath}/></li></ul>
-                                            : <ul className="ul">
-                                                {imgs.map((value, index) => {
-                                                    return (
-                                                        <li className={index === showIndex ? 'show' : ''}
-                                                            key={index}>
-                                                            <div id={`poseContainer${index}`}
+                        <Card sx={{width: "95%", height:640, mt: 3, mb: 2}}>
+                            <Grid container item direction="column" alignItems="center" justifyContent="space-around">
+                                <Grid container item direction="column" alignItems="center" justifyContent="flex-start" sx={{mb:2, width: "100%"}} className="contain">
+                                    {showIndex===imgs.length
+                                        ? <ul className="ul">
+                                            <li className= 'show' key={0} style={{ width: '430px', height: '300px' }}>
+                                                <img alt="" src={imgs[0].imgPath}/>
+                                            </li>
+                                        </ul>
+                                        : <ul className="ul">
+                                            {imgs.map((value, index) => {
+                                                return (
+                                                    <li className={index === showIndex ? 'show' : ''} key={index}>
+                                                        <div id={`poseContainer${index}`}
                                                             ref={poseContainerRefs[index]}
-                                                            style={{ width: '480px', height: '302px' }}>
-                                                                <img crossOrigin="anonymous"
+                                                            style={{ width: '430px', height: '300px' }}
+                                                        >
+                                                            <img alt="" crossOrigin="anonymous"
                                                                 ref={imageRefs[index]}
                                                                 id="Pose"
                                                                 src={value.imgPath + '?timestamp=' + Math.random()}
                                                                 alt="Pose"
                                                                 //onLoad={() => handleImageLoad(index)}
                                                                 key={index}
-                                                                />
-                                                                <div style={{
+                                                            />
+                                                            <div style={{
+                                                                    position: 'absolute',
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                                    color: 'white',
+                                                                    padding: '5px'
+                                                            }}>
+                                                                Keep more {countdown} s
+                                                            </div>
+                                                            <div style={{
                                                                         position: 'absolute',
-                                                                        top: 0,
+                                                                        bottom: 0,
                                                                         left: 0,
-                                                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                                        backgroundColor: 'rgba(0, 0, 0, 0.2)',
                                                                         color: 'white',
                                                                         padding: '5px'
-                                                                     }}>
-                                                                        Keep more {countdown} s
-                                                                </div>
+                                                                }}>
+                                                                    {value.imgDesc}
                                                             </div>
-                                                            //<img src={value.imgPath}/>
-                                                        </li>
-                                                    )
-                                                })}
-                                            </ul>
-                                            }
-                                            {showIndex===imgs.length
-                                            ? <ul className="dots" style={{width: imgs.length * 20 + 'px'}}> <li className= 'active' key={0} onClick={() => {change(0)}}> <img src={imgs[0].imgPath}/> </li></ul>
-                                            : <ul className="dots" style={{width: imgs.length * 20 + 'px'}}>
-                                                {imgs.map((value, index) => {
-                                                    return (
-                                                        <li key={index}
-                                                            className={index === showIndex ? 'active' : ''}
-                                                            onClick={() => {
-                                                                change(index)
-                                                            }}></li>
-                                                    )
-                                                })}
-                                            </ul>
-                                            }
-                                        </div>
-                                    </div>
+                                                        </div>
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                    }
+                                    {showIndex===imgs.length
+                                        ? <ul className="dots" style={{width: imgs.length * 20 + 'px'}}>
+                                            <li key={0}
+                                                className='active'
+                                                onClick={() => {
+                                                    change(0)
+                                                }}
+                                            >
+                                            </li>
+                                        </ul>
+                                        : <ul className="dots" style={{width: imgs.length * 20 + 'px'}}>
+                                            {imgs.map((value, index) => {
+                                                return (
+                                                    <li key={index}
+                                                        className={index === showIndex ? 'active' : ''}
+                                                        onClick={() => {
+                                                            change(index)
+                                                        }}
+                                                    >
+                                                    </li>
+                                                )
+                                            })}
+                                        </ul>
+                                    }
                                 </Grid>
-                            </Grid>
-                        </Card>
-                        <Card sx={{width: 500, mt: 2.5}}>
-                            <Grid item sx={{mt: 1, ml: 4}}>
-                                <Line data={data} options={options}/>
+                                <Grid container item direction="row" alignItems="center" justifyContent="center"
+                                sx={{mt: 4, width: "100%"}}>
+                                    <Line data={data} options={options} height={150}/>
+                                </Grid>
                             </Grid>
                         </Card>
                     </Grid>
@@ -965,7 +944,7 @@ function Working_Yoga(){
     } else if (topage === "SignIn") {
         return (<Navigate to="/SignIn" replace={true}/>)
     } else if (topage === "Home") {
-        return (<Navigate to="/Home" replace={true}/>)
+        return (<Navigate to="/" replace={true}/>)
     }
 };
 
