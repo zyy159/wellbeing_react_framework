@@ -62,7 +62,7 @@ class ResponseInfo {
 function MakeSchedule(){
     const location = useLocation();
     const [exerciseID, setExerciseID] = React.useState((location.search).replaceAll("?exercise=",""))
-    console.log(exerciseID)
+    //console.log(exerciseID)
     const today = new Date();
     const [topage, setTopage] = React.useState("");
     const [exercise_info, setExercise_info] = React.useState({
@@ -102,6 +102,8 @@ function MakeSchedule(){
         setEdit_time(null);
     };
 
+
+
     const Send = () => {
         const newArray = [...date_list];
         const sub_schedules = [];
@@ -113,9 +115,19 @@ function MakeSchedule(){
         data.append("start_time", newArray[0])
         data.append("end_time",  newArray[newArray.length-1])
         for(let i = 0; i < newArray.length; i++){
+            const startTimeString = newArray[i];
+            console.log("startTimeString",startTimeString);
+            const tmpstartTime = new Date(startTimeString);
+            const startTime = new Date(startTimeString);
+            console.log("startTime",startTime);
+            tmpstartTime.setMinutes(tmpstartTime.getMinutes() + 10);
+            console.log("New startTime",tmpstartTime);
+            // 格式化为'%Y-%m-%dT%H:%M:%S.%fZ'的字符串
+            const formattedEndTime = tmpstartTime;
+            console.log(formattedEndTime);
             sub_schedules[i] = {
-                "start_time": new Date(newArray[i]),
-                "end_time": getEndDatetime(new Date(newArray[i]), 10)
+                "start_time": startTime,
+                "end_time": formattedEndTime
             }
         }
         data.append("sub_schedules",  JSON.stringify(sub_schedules))
