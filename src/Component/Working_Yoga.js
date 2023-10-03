@@ -3,7 +3,7 @@ import {Navigate, useLocation} from 'react-router-dom';
 import AppHeader from '../Tool/App_Header';
 import './Working_Yoga.css';
 import history from "../Tool/history";
-// import 'font-awesome/css/font-awesome.min.css';
+import 'font-awesome/css/font-awesome.min.css';
 
 import { Line } from 'react-chartjs-2';
 import * as posenet from '@tensorflow-models/posenet';
@@ -46,6 +46,7 @@ model.compile({
 function Working_Yoga(){
     const location = useLocation();
     const [exerciseID, setExerciseID] = React.useState(null);
+    const [scheduleID, setScheduleID] = React.useState(0);
 //    const [exerciseID, setExerciseID] = React.useState((location.search).replaceAll("?exercise=",""));
     const [topage, setTopage] = React.useState("");
     const [showIndex, setShowIndex] = React.useState(0);
@@ -56,8 +57,13 @@ function Working_Yoga(){
     const [videoPose, setVideoPose] = React.useState(null);
     const [net, setNet] = React.useState(null);
     const [similarityScores, setSimilarityScores] = React.useState([]);
+    const [singleSimilarityScores, setSingleSimilarityScores] = React.useState([]);
+    const [singleCalories, setSingleCalories] = React.useState(0);
+    const [startTime, setStartTime] = React.useState(null);
     const [similarityScore, setSimilarityScore] = React.useState(null);
-    const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 , imgDesc: ""}]);
+    const [postActions, setPostActions] = React.useState(false);
+    const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 , imgDesc: "",storeUrl:
+    ""}]);
     const [imageRefs, setImageRefs] = React.useState([]); // 初始化为空数组
     const [poseContainerRefs, setPoseContainerRefs] = React.useState([]); // 初始化为空数组
     const [shouldStart, setShouldStart] = React.useState(false);
@@ -70,6 +76,7 @@ function Working_Yoga(){
     const [awesome, setAwesome] = React.useState(0);
     const [showCountdown, setShowCountdown] = React.useState(false);
     const [showCongratulations, setShowCongratulations] = React.useState(false);
+    const [showStars, setShowStars] = React.useState(false);
     const [firstLoad, setfirstLoad] = React.useState(false);
     const [caloriesBurnedArray, setCaloriesBurnedArray] = React.useState([]);
     const difficulty = "Easy";
@@ -88,11 +95,13 @@ function Working_Yoga(){
         console.log("Click Start Time:", formattedTime);
         setShouldStart(true);
         setIsPaused(false);
-        console.log("showCongratulations01",showCongratulations)
-        setfirstLoad(false)
+        console.log("showCongratulations01",showCongratulations,showStars);
+        setfirstLoad(false);
+        setPostActions(false);
         setShowCongratulations(false);  // 设置为 true 以显示 "Congratulation"
-        console.log("showCongratulations02",showCongratulations)
-        setStatus("In Progress")
+        setShowStars(false);  // 设置为 true 以显示 "Stars"
+        console.log("showCongratulations02",showCongratulations,showStars);
+        setStatus("In Progress");
     }
     const change = (index) => {
         setShowIndex(index)
@@ -184,7 +193,8 @@ function Working_Yoga(){
                         imgPath: response.data.model_url,
                         duration: response.data.duration * 1000 * difficultyFactor,
                         calories: response.data.calories * difficultyFactor,
-                        imgDesc: response.data.description
+                        imgDesc: response.data.description,
+                        storeUrl: storeUrl
                     };
                 }));
                 const sortedModels = fetchedModels.sort((a, b) => {
@@ -224,11 +234,17 @@ function Working_Yoga(){
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const exerciseParam = params.get('exercise');
+        const scheduleParam = params.get('schedule');
         if (exerciseParam) {
           setExerciseID(exerciseParam);
         } else {
           console.error("exerciseID 不存在");
-    }
+        }
+        if (scheduleParam) {
+          setScheduleID(scheduleParam);
+        } else {
+          console.error("Warning: ScheduleID 不存在");
+        }
   }, [location.search]);  // 依赖于 location.search
     // 在 useEffect 中调用该函数
     useEffect(() => {
@@ -250,32 +266,11 @@ function Working_Yoga(){
 
     useEffect(() => {
         async function loadPoseNetModel() {
-      // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
-//      const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
-//          const base64WeightsArray = await response.json();
-//
-//          // 将 Base64 编码的字符串解码为 ArrayBuffer
-//          const weightBuffers = base64WeightsArray.map(base64Weights => {
-//            const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
-//            return binaryWeights.buffer;
-//          });
-
           const model = await posenet.load({
             architecture: 'MobileNetV1',
             outputStride: 16,
             multiplier: 0.75,
             modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
-//            fetchFunc: async (url) => {
-//              console.log(url)
-//              const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
-//              if (shardIndex) {
-//                const index = parseInt(shardIndex[1]) - 1;
-//                console.log(weightBuffers[index])
-//                return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
-//              } else {
-//                return fetch(url);
-//              }
-//            }
           });
 
           setNet(model);
@@ -293,32 +288,11 @@ function Working_Yoga(){
         function handleVideoLoaded() {
             //console.log("Video data loaded.");
             async function initializePoseNet() {
-                // 从 base64Weights.json 文件中获取 Base64 编码的权重字符串数组
-//                const response = await fetch('https://wellbeing.htcangelfund.com/public/base64Weights.json');
-//                const base64WeightsArray = await response.json();
-//
-//                // 将 Base64 编码的字符串解码为 ArrayBuffer
-//                const weightBuffers = base64WeightsArray.map(base64Weights => {
-//                    const binaryWeights = Uint8Array.from(atob(base64Weights), c => c.charCodeAt(0));
-//                    return binaryWeights.buffer;
-//                });
-
                 const net = await posenet.load({
                     architecture: 'MobileNetV1',
                     outputStride: 16,
                     multiplier: 0.75,
                     modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
-//                    fetchFunc: async (url) => {
-//                      console.log(url)
-//                      const shardIndex = url.match(/shard(\d+)of(\d+)\.bin/);
-//                      if (shardIndex) {
-//                        const index = parseInt(shardIndex[1]) - 1;
-//                        console.log(weightBuffers[index])
-//                        return new Response(weightBuffers[index], { headers: { 'Content-Type': 'application/octet-stream' } });
-//                      } else {
-//                        return fetch(url);
-//                      }
-//                    }
                   });
 
 //                const net = await posenet.load({
@@ -368,6 +342,8 @@ function Working_Yoga(){
     // 用于图片轮播的 useEffect
     useEffect(() => {
         let imageIntervalId;
+        let startTime = new Date().toISOString();  // 记录开始时间
+        setStartTime(startTime);
         // 当有有效的图片索引，并且图片数组不为空时
         if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
             const currentDuration = imgs[showIndex].duration;
@@ -379,13 +355,87 @@ function Working_Yoga(){
         // 清除图片轮播的定时器
         return () => {
             clearInterval(imageIntervalId);
+            setPostActions(true);
+            // 检查 singleSimilarityScores 是否包含数据
+//            console.log("imageInterval showIndex",showIndex);
+//            console.log("singleSimilarityScores.length",singleSimilarityScores.length)
+//            if (singleSimilarityScores.length > 0 && showIndex < imgs.length) {
+//                console.log("showIndex",showIndex,singleSimilarityScores)
+//                const { mean, stdDeviation } = calculateMeanAndStdDeviation(singleSimilarityScores);
+//                const zScores = calculateZScores(singleSimilarityScores, mean, stdDeviation);
+//                // console.log("zScores ",zScores)
+//                const stars = calculateStarRating(zScores); // 使用当前图片的得分计算星星数
+//                console.log("stars",stars)
+//                let endTime = new Date().toISOString();  // 记录结束时间
+//
+//                // 构建请求的数据对象
+//                let data = {
+//                    owner: cookie.load('user_id'),
+//                    model_store: imgs[showIndex].storeUrl,
+//                    start_time: startTime,
+//                    end_time: endTime,
+//                    score: stars, // 使用星星数作为得分
+//                    calories: Math.round(singleCalories), // 使用当前图片的得分计算总卡路里
+//                    label: `Schedule_${scheduleID}_Exercise_${exerciseID}`  // 假设 ScheduleID 和 exerciseID 是可用的变量
+//                };
+//                console.log("data",data)
+//                // 使用axios发送数据到后端
+//                const token = cookie.load("token")
+//                axios.post(server+"exercise/actions/", data,{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}})
+//                    .then(response => {
+//                        console.log("Data sent successfully:", response.data);
+//                    })
+//                    .catch(error => {
+//                        console.error("Error sending data:", error);
+//                    });
+//            } else {
+//                console.warn("No similarity scores available for the current image. Data not sent to backend.");
+//            }
+
+
             if(shouldStart && showIndex >= imgs.length - 1){
                 setShouldStart(false);
                 setStartComparison(false)
                 setShowCongratulations(true);  // 设置为 true 以显示 "Congratulation
+                setShowStars(true);  // 设置为 true 以显示 Stars
             }
         };
     }, [showIndex, imgs, shouldStart, isPaused]);
+
+    useEffect(() => {
+        // 检查 singleSimilarityScores 是否包含数据
+        if (singleSimilarityScores.length > 0 && showIndex < imgs.length && postActions) {
+            const { mean, stdDeviation } = calculateMeanAndStdDeviation(singleSimilarityScores);
+            const zScores = calculateZScores(singleSimilarityScores, mean, stdDeviation);
+            const stars = calculateStarRating(zScores);
+            let endTime = new Date().toISOString();
+            console.log("showIndex",showIndex);
+            let data = {
+                owner: cookie.load('user_id'),
+                model_store: imgs[showIndex].storeUrl,
+                start_time: startTime,  // 确保 startTime 在这个上下文中是可用的
+                end_time: endTime,
+                score: stars,
+                calories: Math.round(singleCalories),
+                label: `Schedule_${scheduleID}_Exercise_${exerciseID}`
+            };
+
+            const token = cookie.load("token");
+            axios.post(server+"exercise/actions/", data, {headers:{"Content-Type":'application/json',"Authorization": "Token "+token}})
+                .then(response => {
+                    console.log("Data sent successfully:", response.data);
+                })
+                .catch(error => {
+                    console.error("Error sending data:", error);
+                });
+            setSingleSimilarityScores([]);  // 清空单张图片的相似度得分数组
+            setSingleCalories(0);  // 重置 singleCalories 回到初始状态
+            setPostActions(false);// 重置 回到初始状态
+        } else {
+            console.warn("No similarity scores available for the current image. Data not sent to backend.");
+        }
+    }, [singleSimilarityScores, showIndex, imgs, postActions]); //运行useEffect 当 singleSimilarityScores 或 showIndex改变
+
 
     //开始倒计时
     useEffect(() => {
@@ -471,6 +521,8 @@ function Working_Yoga(){
                 const currentFrameCalories = caloriesPerFrame * tmpsimilarityScore/100; // 使用相似度进行加权
                 console.log("tmpsimilarityScore & currentFrameCalories ", tmpsimilarityScore, currentFrameCalories);
                 const newCaloriesBurnedArray = [...caloriesBurnedArray, (caloriesBurnedArray.slice(-1)[0] || 0) + currentFrameCalories];
+                // 更新 singleCalories 状态
+                setSingleCalories(prevCalories => prevCalories + currentFrameCalories);
                 setCaloriesBurnedArray(newCaloriesBurnedArray);
             } else {
                 console.warn("imgs or imgs[showIndex] is undefined, or missing duration or calories");
@@ -516,9 +568,10 @@ function Working_Yoga(){
     }, [similarityScore]); // 这个 useEffect 依赖于 similarityScore
 
     useEffect(() => {
-        if (shouldStart) return;
-        console.log("similarityScores",similarityScores)
-        onCarouselComplete(similarityScores)
+        if (showStars) {
+            console.log("similarityScores",similarityScores)
+            onCarouselComplete(similarityScores)
+        }
      }, [shouldStart]);
 
     //when the exercise is end, then show the total score of the exercise
@@ -695,6 +748,9 @@ function Working_Yoga(){
         let similarityScore = (similarity + 1) / 2 * 100;
         // 添加新的相似度分数到数组中
         setSimilarityScores(prevScores => [...prevScores, similarityScore]);
+        console.log("start setSingleSimilarityScores")
+        setSingleSimilarityScores(prevScores => [...prevScores, similarityScore]);
+        console.log("singleSimilarityScores length", singleSimilarityScores.length);
         setSimilarityScore(similarityScore);
         return similarityScore;
     }
@@ -806,7 +862,7 @@ function Working_Yoga(){
                                             Congratulation!
                                         </div>
                                     )}
-                                    {!shouldStart && <div id="star-container"></div>}
+                                    {showStars && ( <div id="star-container"></div>)}
                                     {showCountdown && (
                                         <div style={{
                                             position: 'absolute',
@@ -944,7 +1000,7 @@ function Working_Yoga(){
     } else if (topage === "SignIn") {
         return (<Navigate to="/SignIn" replace={true}/>)
     } else if (topage === "Home") {
-        return (<Navigate to="/" replace={true}/>)
+        return (<Navigate to="/Home" replace={true}/>)
     }
 };
 
