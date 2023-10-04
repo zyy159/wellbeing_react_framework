@@ -14,6 +14,7 @@ import SelfImprovementIcon from '@mui/icons-material/SelfImprovement';
 import Grid from "@mui/material/Grid";
 import Card from '@mui/material/Card';
 import Button from "@mui/material/Button";
+import Tooltip from '@mui/material/Tooltip';
 import Typography from "@mui/material/Typography";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
@@ -55,7 +56,7 @@ function Working_Yoga(){
     const [startComparison, setStartComparison] = React.useState(false);
     const [imagePose, setImagePose] = React.useState(null);
     const [videoPose, setVideoPose] = React.useState(null);
-    const [net, setNet] = React.useState(null);
+    //const [net, setNet] = React.useState(null);
     const [similarityScores, setSimilarityScores] = React.useState([]);
     const [singleSimilarityScores, setSingleSimilarityScores] = React.useState([]);
     const [singleCalories, setSingleCalories] = React.useState(0);
@@ -68,6 +69,7 @@ function Working_Yoga(){
     const [poseContainerRefs, setPoseContainerRefs] = React.useState([]); // 初始化为空数组
     const [shouldStart, setShouldStart] = React.useState(false);
     const [isPaused, setIsPaused] = React.useState(false);
+    const [showPaused, setShowPaused] = React.useState(false);
     const [countdown, setCountdown] = React.useState(0);
     const [Readycountdown, setReadyCountdown] = React.useState(0);
     const [miss, setMiss] = React.useState(0);
@@ -80,6 +82,8 @@ function Working_Yoga(){
     const [firstLoad, setfirstLoad] = React.useState(false);
     const [caloriesBurnedArray, setCaloriesBurnedArray] = React.useState([]);
     const difficulty = "Easy";
+    const [isImageLoaded, setIsImageLoaded] = React.useState(false);
+    const [isPoseEstimated, setIsPoseEstimated] = React.useState(false);
 
     const stop = () => {
         setShowIndex(0)
@@ -87,6 +91,7 @@ function Working_Yoga(){
     }
     const pause = () => {
         setIsPaused(true);
+        setShowPaused(false);
     }
     const start = () => {
         setShowIndex(0)
@@ -95,6 +100,7 @@ function Working_Yoga(){
         console.log("Click Start Time:", formattedTime);
         setShouldStart(true);
         setIsPaused(false);
+        setShowPaused(true);
         console.log("showCongratulations01",showCongratulations,showStars);
         setfirstLoad(false);
         setPostActions(false);
@@ -106,7 +112,14 @@ function Working_Yoga(){
     const change = (index) => {
         setShowIndex(index)
     }
+    const startPauseToggle = () => {
+        if (!showPaused) {
+            start();
+        } else {
+            pause();
+        }
 
+    };
     //prepare the line chart
     const data = {
         labels: similarityScores.map((_, i) => i + 1),
@@ -131,6 +144,8 @@ function Working_Yoga(){
     };
 
     const options = {
+        responsive: true,  // 让图表响应式
+        maintainAspectRatio: false,  // 不保持宽高比
         scales: {
             'y-axis-1': {
                 type: 'linear',
@@ -259,26 +274,6 @@ function Working_Yoga(){
         }
     }, [exerciseID]);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
 
-//    useEffect(() => {
-//        setExerciseID("15")
-//        console.log("Debug")
-//    }, []);  // 空依赖数组表示这个 useEffect 仅在组件挂载时运行
-
-    useEffect(() => {
-        async function loadPoseNetModel() {
-          const model = await posenet.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.75,
-            modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
-          });
-
-          setNet(model);
-        }
-
-        loadPoseNetModel();
-      }, []);
-
     useEffect(() => {
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('canvas');
@@ -294,14 +289,6 @@ function Working_Yoga(){
                     multiplier: 0.75,
                     modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
                   });
-
-//                const net = await posenet.load({
-//                    architecture: 'MobileNetV1',
-//                    outputStride: 16,
-//                    multiplier: 0.75,
-//                    modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json', // 指定模型的新位置
-//                    // inputResolution: 801
-//                });
 
                 async function detectPose() {
                     const pose = await net.estimateSinglePose(video, {
@@ -356,42 +343,6 @@ function Working_Yoga(){
         return () => {
             clearInterval(imageIntervalId);
             setPostActions(true);
-            // 检查 singleSimilarityScores 是否包含数据
-//            console.log("imageInterval showIndex",showIndex);
-//            console.log("singleSimilarityScores.length",singleSimilarityScores.length)
-//            if (singleSimilarityScores.length > 0 && showIndex < imgs.length) {
-//                console.log("showIndex",showIndex,singleSimilarityScores)
-//                const { mean, stdDeviation } = calculateMeanAndStdDeviation(singleSimilarityScores);
-//                const zScores = calculateZScores(singleSimilarityScores, mean, stdDeviation);
-//                // console.log("zScores ",zScores)
-//                const stars = calculateStarRating(zScores); // 使用当前图片的得分计算星星数
-//                console.log("stars",stars)
-//                let endTime = new Date().toISOString();  // 记录结束时间
-//
-//                // 构建请求的数据对象
-//                let data = {
-//                    owner: cookie.load('user_id'),
-//                    model_store: imgs[showIndex].storeUrl,
-//                    start_time: startTime,
-//                    end_time: endTime,
-//                    score: stars, // 使用星星数作为得分
-//                    calories: Math.round(singleCalories), // 使用当前图片的得分计算总卡路里
-//                    label: `Schedule_${scheduleID}_Exercise_${exerciseID}`  // 假设 ScheduleID 和 exerciseID 是可用的变量
-//                };
-//                console.log("data",data)
-//                // 使用axios发送数据到后端
-//                const token = cookie.load("token")
-//                axios.post(server+"exercise/actions/", data,{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}})
-//                    .then(response => {
-//                        console.log("Data sent successfully:", response.data);
-//                    })
-//                    .catch(error => {
-//                        console.error("Error sending data:", error);
-//                    });
-//            } else {
-//                console.warn("No similarity scores available for the current image. Data not sent to backend.");
-//            }
-
 
             if(shouldStart && showIndex >= imgs.length - 1){
                 setShouldStart(false);
@@ -463,48 +414,71 @@ function Working_Yoga(){
 
     // 用于倒计时的 useEffect
     useEffect(() => {
-        let countdownIntervalId;
-        if (startComparison && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
-            setCountdown(Math.floor(imgs[showIndex].duration / 1000));  // 初始化倒计时
-            // 设置倒计时的定时器
-            countdownIntervalId = setInterval(() => {
-                setCountdown((prevCountdown) => prevCountdown - 1);
-            }, 1000);
-        }
-        // 清除倒计时的定时器
-        return () => {
-            clearInterval(countdownIntervalId);
-        };
-    }, [showIndex, imgs, startComparison, isPaused]);
+            let countdownIntervalId;
+            if (startComparison && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
+                setCountdown(Math.floor(imgs[showIndex].duration / 1000));  // 初始化倒计时
+                // 设置倒计时的定时器
+                countdownIntervalId = setInterval(() => {
+                    setCountdown((prevCountdown) => prevCountdown - 1);
+                }, 1000);
+            }
+            // 清除倒计时的定时器
+            return () => {
+                clearInterval(countdownIntervalId);
+            };
+        }, [showIndex, imgs, startComparison, isPaused]);
 
-    // 当 showIndex 或 PoseNet 模型更改时，获取新的图像姿态
+        // 当 showIndex 或 PoseNet 模型更改时，获取新的图像姿态
+
     useEffect(() => {
         async function estimatePoseFromImage() {
-            const now = new Date();
-            let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-            //console.log("estimatePoseFromImage Start : ", formattedTime,showIndex,imageRefs[showIndex]);
-            if (net && imageRefs && imageRefs[showIndex]) {
-                const imageElement = imageRefs[showIndex].current;
-                if (imageElement) {
+            const net = await posenet.load({
+                architecture: 'MobileNetV1',
+                outputStride: 16,
+                multiplier: 0.75,
+                modelUrl: 'https://wellbeing.htcangelfund.com/public/models/movenet/model.json',
+            });
+
+            const imageElement = imageRefs[showIndex]?.current;
+            if (imageElement) {
+                // Ensure the image is fully loaded
+                if (imageElement.complete && imageElement.naturalHeight !== 0) {
+                    // 当图片加载完成时，设置
+                    setIsImageLoaded(true);
+                    // 当姿态预测完成时，设置
+                    setIsPoseEstimated(true);
+                    console.log("Image is loaded, estimating pose...");
                     const pose = await net.estimateSinglePose(imageElement);
+                    console.log("Pose estimation result:", pose);
                     setImagePose(pose);
-                    formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-                    console.log("estimatePose pose : ", formattedTime);
+                } else {
+                    // If image is not loaded, set up a listener to run pose estimation once it does
+                    imageElement.onload = async () => {
+                        console.log("Image onload is loaded, estimating pose...");
+                        const pose = await net.estimateSinglePose(imageElement);
+                        console.log("Pose onload estimation result:", pose);
+                        // 当图片加载完成时，设置
+                        setIsImageLoaded(true);
+                        // 当姿态预测完成时，设置
+                        setIsPoseEstimated(true);
+                        setImagePose(pose);
+                    };
                 }
             }
         }
         estimatePoseFromImage();
-    }, [showIndex, net, imageRefs]);
+    }, [showIndex, imageRefs]);
+
 
     // Calculate the similarity
     useEffect(() => {
         const now = new Date();
         let formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
         //console.log("Video pose Timestamp:", formattedTime);
-        if (startComparison && videoPose && imagePose)  {  // 确保 poseFromImage 已经被设置
+        if (startComparison && videoPose && imagePose && !isPaused)  {  // 确保 poseFromImage 已经被设置
             formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
-            console.log("Start Compare Timestamp:", formattedTime);
-            console.log("useEffect trigger");
+//            console.log("Start Compare Timestamp:", formattedTime);
+//            console.log("useEffect trigger");
             console.log("poseFromImage:", imagePose);
             console.log("poseFromVideo:", videoPose);
             let tmpsimilarityScore = poseSimilarity(videoPose, imagePose);
@@ -515,11 +489,11 @@ function Working_Yoga(){
             if (imgs && imgs[showIndex] && typeof imgs[showIndex].duration === 'number' && typeof imgs[showIndex].calories === 'number') {
                 const durationInSeconds = imgs[showIndex].duration / 1000; // 当前动作的持续时间（以秒为单位）
                 const caloriesPerFrame = imgs[showIndex].calories / (durationInSeconds * framesPerSecond);
-                console.log("imgs[showIndex].calories ", showIndex, imgs[showIndex].calories);
-                console.log("durationInSeconds", durationInSeconds);
-                console.log("average caloriesPerFrame", caloriesPerFrame);
+                //console.log("imgs[showIndex].calories ", showIndex, imgs[showIndex].calories);
+//                console.log("durationInSeconds", durationInSeconds);
+//                console.log("average caloriesPerFrame", caloriesPerFrame);
                 const currentFrameCalories = caloriesPerFrame * tmpsimilarityScore/100; // 使用相似度进行加权
-                console.log("tmpsimilarityScore & currentFrameCalories ", tmpsimilarityScore, currentFrameCalories);
+                //console.log("tmpsimilarityScore & currentFrameCalories ", tmpsimilarityScore, currentFrameCalories);
                 const newCaloriesBurnedArray = [...caloriesBurnedArray, (caloriesBurnedArray.slice(-1)[0] || 0) + currentFrameCalories];
                 // 更新 singleCalories 状态
                 setSingleCalories(prevCalories => prevCalories + currentFrameCalories);
@@ -528,6 +502,7 @@ function Working_Yoga(){
                 console.warn("imgs or imgs[showIndex] is undefined, or missing duration or calories");
             }
         }
+
     }, [videoPose, imagePose,shouldStart]);
 
     // 假设这是你计算相似度的函数或效果
@@ -538,19 +513,19 @@ function Working_Yoga(){
         let thresholdA, thresholdB, thresholdC;
         switch (difficulty) {
             case "Easy":
-                thresholdA = 50;
+                thresholdA = 25;
+                thresholdB = 50;
+                thresholdC = 60;
+                break;
+            case "Medium":
+                thresholdA = 40;
                 thresholdB = 60;
                 thresholdC = 70;
                 break;
-            case "Medium":
-                thresholdA = 60;
+            case "Hard":
+                thresholdA = 50;
                 thresholdB = 70;
                 thresholdC = 80;
-                break;
-            case "Hard":
-                thresholdA = 70;
-                thresholdB = 80;
-                thresholdC = 90;
                 break;
             default:
                 console.error("Invalid difficulty level");
@@ -600,10 +575,10 @@ function Working_Yoga(){
                 confidential = 0;
                 break;
             case "Medium":
-                confidential = 0.5;
+                confidential = 0.4;
                 break;
             case "Hard":
-                confidential = 1;
+                confidential = 0.8;
                 break;
             default:
                 console.error("Invalid difficulty level");
@@ -692,22 +667,6 @@ function Working_Yoga(){
         return normalized_keypoints;
     }
 
-    // Calculate Euclidean distance between two points
-    function euclidean_distance(pt1, pt2) {
-        return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
-    }
-
-    // Calculate similarity between two poses
-    function pose_similarity(normalized_pose1, normalized_pose2) {
-        let distance = 0;
-        for (let i = 0; i < normalized_pose1.length; i++) {
-            const keypoint1 = normalized_pose1[i];
-            const keypoint2 = normalized_pose2[i];
-            distance += euclidean_distance(keypoint1.position, keypoint2.position);
-        }
-        return distance / normalized_pose1.length;
-    }
-
     // Calculate cosine similarity between two vectors
     function cosine_similarity(a, b) {
         let dotProduct = 0;
@@ -732,25 +691,42 @@ function Working_Yoga(){
         return arr;
     }
 
+    function calculateConfidenceSimilarity(keypoints1, keypoints2) {
+        let similarConfidenceCount = 0;
+
+        // Assuming keypoints1 and keypoints2 are of the same length
+        for (let i = 0; i < keypoints1.length; i++) {
+            if (keypoints1[i].score >= keypoints2[i].score) {
+                similarConfidenceCount += 1;
+            }
+        }
+
+        return similarConfidenceCount / keypoints1.length; // This will give us the percentage of keypoints with similar confidence
+    }
     function poseSimilarity(pose1, pose2) {
-        console.log('Pose 1:', pose1);
-        console.log('Pose 2:', pose2);
+        console.log('ImagePose 1:', pose1);
+        console.log('VideoPose 2:', pose2);
 
         const normalized_keypoints1 = normalize_keypoints(pose1.keypoints);
         const normalized_keypoints2 = normalize_keypoints(pose2.keypoints);
+
+        // 计算关键点置信度的相似度
+        const confidenceSimilarity = calculateConfidenceSimilarity(pose1.keypoints, pose2.keypoints);
 
         //使用余弦相似度
         const array1 = keypoints_to_array(normalized_keypoints1);
         const array2 = keypoints_to_array(normalized_keypoints2);
         const similarity = cosine_similarity(array1, array2);
-        //console.log("Cosine Similarity:", similarity);
+        console.log("Original Cosine Similarity:", similarity);
+        console.log("confidenceSimilarity:", confidenceSimilarity);
         //console.log("Similarity Percentage:", (similarity + 1) / 2 * 100); // Convert range from [-1, 1] to [0, 100]
-        let similarityScore = (similarity + 1) / 2 * 100;
+        let similarityScore = (similarity + 1) / 2 * 100 * confidenceSimilarity;
+        console.log("Finetune Cosine Similarity::", similarityScore);
         // 添加新的相似度分数到数组中
         setSimilarityScores(prevScores => [...prevScores, similarityScore]);
-        console.log("start setSingleSimilarityScores")
+        //console.log("start setSingleSimilarityScores")
         setSingleSimilarityScores(prevScores => [...prevScores, similarityScore]);
-        console.log("singleSimilarityScores length", singleSimilarityScores.length);
+        //console.log("singleSimilarityScores length", singleSimilarityScores.length);
         setSimilarityScore(similarityScore);
         return similarityScore;
     }
@@ -882,24 +858,37 @@ function Working_Yoga(){
                                     </div>
                                 </Box>
                                 <Grid container item direction="row" alignItems="center" justifyContent="center" sx={{mt: 2, mb: 3}}>
-                                    <Button variant={"outlined"} color={'error'} size="large"
-                                            sx={{fontWeight: 'bold', fontFamily: 'MSYH'}}
-                                            onClick={start}
-                                    >
-                                        Start
-                                    </Button>
-                                    <Button variant={"outlined"} color={'error'} size="large"
-                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
-                                            onClick={stop}
-                                    >
-                                        Pause
-                                    </Button>
-                                    <Button variant={"outlined"} color={"error"} size="large"
-                                            sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
-                                            onClick={stop}
-                                    >
-                                        Stop
-                                    </Button>
+                                     {/* Start/Pause Button */}
+                                    <Tooltip title={isImageLoaded && isPoseEstimated ? "" : "Loading, please wait a minute"}>
+                                        <span>
+                                            <Button
+                                                variant={"outlined"}
+                                                color={'error'}
+                                                size="large"
+                                                sx={{fontWeight: 'bold', fontFamily: 'MSYH'}}
+                                                onClick={startPauseToggle}
+                                                disabled={!(isImageLoaded && isPoseEstimated)}
+                                            >
+                                                {showPaused ? "Pause":"Start"  }
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
+
+                                    {/* Stop Button */}
+                                    <Tooltip title={isImageLoaded && isPoseEstimated ? "" : "Loading, please wait a minute"}>
+                                        <span>
+                                            <Button
+                                                variant={"outlined"}
+                                                color={"error"}
+                                                size="large"
+                                                sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
+                                                onClick={stop}
+                                                disabled={!(isImageLoaded && isPoseEstimated)}
+                                            >
+                                                Stop
+                                            </Button>
+                                        </span>
+                                    </Tooltip>
                                 </Grid>
                             </Grid>
                         </Card>
@@ -936,6 +925,8 @@ function Working_Yoga(){
                                                                 //onLoad={() => handleImageLoad(index)}
                                                                 key={index}
                                                             />
+                                                            //<canvas id={`debugCanvas${index}`} width="430"
+                                                            height="300" style={{position: 'absolute', top: 0, left: 0}}></canvas>
                                                             <div style={{
                                                                     position: 'absolute',
                                                                     top: 0,
@@ -988,8 +979,8 @@ function Working_Yoga(){
                                     }
                                 </Grid>
                                 <Grid container item direction="row" alignItems="center" justifyContent="center"
-                                sx={{mt: 4, width: "100%"}}>
-                                    <Line data={data} options={options} height={150}/>
+                                sx={{mt: 4, width: "100%", height: 200}}>
+                                    <Line data={data} options={options} />
                                 </Grid>
                             </Grid>
                         </Card>
@@ -1000,7 +991,7 @@ function Working_Yoga(){
     } else if (topage === "SignIn") {
         return (<Navigate to="/SignIn" replace={true}/>)
     } else if (topage === "Home") {
-        return (<Navigate to="/Home" replace={true}/>)
+        return (<Navigate to="/" replace={true}/>)
     }
 };
 
