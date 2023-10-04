@@ -513,7 +513,7 @@ function Working_Yoga(){
         let thresholdA, thresholdB, thresholdC;
         switch (difficulty) {
             case "Easy":
-                thresholdA = 25;
+                thresholdA = 30;
                 thresholdB = 50;
                 thresholdC = 60;
                 break;
