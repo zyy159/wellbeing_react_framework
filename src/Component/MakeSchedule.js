@@ -61,16 +61,11 @@ class ResponseInfo {
 
 function MakeSchedule(){
     const location = useLocation();
-    const [exerciseID, setExerciseID] = React.useState((location.search).replaceAll("?exercise=",""))
+    const [exerciseID, setExerciseID] = React.useState(null);
     //console.log(exerciseID)
     const today = new Date();
     const [topage, setTopage] = React.useState("");
-    const [exercise_info, setExercise_info] = React.useState({
-        name: '',
-        duration: 0,
-        calories: 0,
-        popularity: 0
-    });
+    const [exercise_info, setExercise_info] = React.useState(null);
     const [exercise_link, setExercise_link] = React.useState([])
     const [button_style_list, setButton_style_list] = React.useState({
         Five_DAY: 'outlined',
@@ -87,6 +82,7 @@ function MakeSchedule(){
     const [date_list, setDate_list] = React.useState([])
     const [dialog_open, setDialog_Open] = React.useState(false);
     const [edit_time, setEdit_time] = React.useState(null);
+    const [userToken, setUserToken] = React.useState(null);
 
     const dialog_handleClickOpen = (date) => {
         setEdit_time(dayjs(date));
@@ -101,8 +97,6 @@ function MakeSchedule(){
         setDate_list(newArray);
         setEdit_time(null);
     };
-
-
 
     const Send = () => {
         const newArray = [...date_list];
@@ -142,12 +136,41 @@ function MakeSchedule(){
     }
 
     useEffect(()=>{
+        const fetchData = async () => {
+            try {
+                    const exerciseResponse = await axios.get(server+"exercise/exercises/"+exerciseID+"/", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                            }
+                    });
+                    console.log("exerciseResponse",exerciseResponse);
+                    setExercise_info(exerciseResponse.data);
+                    } catch (error) {
+                console.error("Error fetching user profile: ", error);
+            }
+        };
+        fetchData();
+    }, [exerciseID,userToken,exerciseID]);
+
+    useEffect(()=>{
         if(edit_time !== null){
             setDialog_Open(true);
         }else{
             setDialog_Open(false);
         }
     }, [edit_time]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const exerciseParam = params.get('exercise');
+        if (exerciseParam) {
+          console.log("exerciseID:", exerciseParam);
+          setExerciseID(exerciseParam);
+        } else {
+          console.error("exerciseID 不存在");
+        }
+      }, []);
 
     useEffect(()=>{
         if(date_config.from_date !== null){
@@ -169,13 +192,7 @@ function MakeSchedule(){
             let tmpExercise_link=fronEndserver+"Working_Yoga?exercise="+exerciseID+"&token="+token
             setExercise_link(tmpExercise_link)
             console.log(tmpExercise_link)
-//            axios.get(server+"exercise/exercises/"+exerciseID,{headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
-//                setExercise_info({...exercise_info, name:response.data.name, duration:response.data.duration, calories:response.data.calories, popularity:response.data.popularity})
-//                setExercise_link(response.data.model_stores)
-//            }).catch(err => {
-//                console.log(err)
-//                alert("Fail to load! Please retry!");
-//            })
+            setUserToken(token);
         }
     },[]);
 
@@ -190,19 +207,28 @@ function MakeSchedule(){
                                 <Grid container item direction="row" alignItems="center" justifyContent="center" xs="auto">
                                     <img src={Mountain} alt={"Mountain"} width="200" />
                                     <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml:3}}>
+                                        {exercise_info ?(
                                         <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:350, fontFamily: 'MSYH' }}>
                                             {exercise_info.name}
-                                        </Typography>
+                                        </Typography>) : (
+                                        <p>Loading...</p>
+                                        )}
+                                        {exercise_info ?(
                                         <Typography variant="h5" sx={{ mt:5, width:350, fontFamily: 'MSYH' }}>
                                             {exercise_info.duration/60} mins
-                                        </Typography>
+                                        </Typography>) : (
+                                        <p>Loading...</p>
+                                        )}
                                     </Grid>
                                 </Grid>
                                 <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
+                                    {exercise_info ?(
                                     <Typography variant="h3" sx={{ ml:4, fontWeight: 'bold', lineHeight: 1.5, width: 200, fontFamily: 'MSYH' }}>
                                         <LocalFireDepartmentIcon fontSize="large" color={"error"}/>
                                         {exercise_info.calories}K
-                                    </Typography>
+                                    </Typography>) : (
+                                        <p>Loading...</p>
+                                        )}
                                     <Typography variant="h6" sx={{ mt:1, width: 200, fontFamily: 'MSYH' }}>
                                         CALORIES BURNT
                                     </Typography>
