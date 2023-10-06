@@ -2,3 +2,13 @@
     max-height: 400px; /* 设置您希望的最大高度 */
     overflow-y: auto; /* 当内容溢出时显示垂直滚动条 */
 }
+.text-container {
+    max-width: 200px;  /* 或其他合适的宽度 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.go-button-container {
+    margin-left: auto;
+}
