@@ -34,10 +34,33 @@ const server = 'https://wellbeing.htcangelfund.com/api/';
 function Home() {
     const [topage, setTopage] = React.useState("Home");
     const [exerciseId, setExerciseId] = React.useState(null);
-    const [wellbeing_level, setWellbeing_level] = React.useState(0);
+    const [userToken, setUserToken] = React.useState(null);
+    const [wellbeing_level, setWellbeing_level] = React.useState(null);
     const [total_time, setTotal_time] = React.useState("");
     const [total_score, setTotal_score] = React.useState(0);
     const [upcomingPlans, setUpcomingPlans] = React.useState([]);
+    const [badgeData, setBadgeData] = React.useState(null);
+    const [userProfile, setUserProfile] = React.useState(null);
+
+    const convertToMMDDHHMM = (isoString) => {
+        const date = new Date(isoString);
+        const optionsDate = { month: '2-digit', day: '2-digit' };
+        const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: false };
+
+        const localDate = date.toLocaleDateString('en-US', optionsDate).replace(/\//g, '-');
+        const localTime = date.toLocaleTimeString('en-US', optionsTime).replace(/:/g, ':');
+
+        return `${localDate} ${localTime}`;
+    };
+
+    useEffect(() => {
+            if(!cookie.load('user_id')){
+                history.push({pathname:"/SignIn",state:{}});
+                setTopage("SignIn")
+            }else{
+                setUserToken(cookie.load("token"));
+            }
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -48,6 +71,7 @@ function Home() {
                 const token = cookie.load("token");
 
                 try {
+                    //Get the user summary
                     const summaryResponse = await axios.get(server + "exercise/usersummary/", {
                         headers: {
                             "Content-Type": 'application/json',
@@ -96,6 +120,17 @@ function Home() {
                                 // Parse sub_schedules to JSON
                                 const subSchedulesParsed = JSON.parse(plan.sub_schedules);
                                 console.log("subSchedulesParsed",subSchedulesParsed);
+                                // Check if there is at least one future sub_schedule
+                                const now = new Date();
+                                const hasFutureSubSchedule = subSchedulesParsed.some(sub_schedule =>
+                                    new Date(sub_schedule.start_time) > now
+                                );
+                                // If there are no future sub_schedules, skip this plan
+                                console.log("hasFutureSubSchedule",hasFutureSubSchedule)
+                                if (!hasFutureSubSchedule) {
+                                    return null;
+                                }
+
                                 const convertToMMDDHHMM = (isoString) => {
                                   const date = new Date(isoString);
                                   const optionsDate = { month: '2-digit', day: '2-digit' };
@@ -116,9 +151,10 @@ function Home() {
                                 });
 
                                 // Construct the GO button URL
-                                console.log("plan.exercises",plan.exercises)
-                                console.log("plan.exercises[0",plan.exercises[0])
+                                console.log("plan.exercises",plan)
+                                console.log("plan.exercises[0]",plan.exercises[0])
                                 const exerciseId = plan.exercises[0].replace(/\/$/, '').split('/').pop();
+                                const scheduleID = plan.id
                                 console.log("exerciseId",exerciseId);
                                 //setExerciseId(exerciseId);  // Set the exerciseId state
                                 const hostname = window.location.hostname;
@@ -131,7 +167,8 @@ function Home() {
                                 }else{
                                      baseUrl = `${protocol}//${hostname}`;
                                 }
-                                const goButtonUrl = `${baseUrl}/Working_Yoga?exercise=${exerciseId}`;
+                                const goButtonUrl =
+                                `${baseUrl}/Working_Yoga?exercise=${exerciseId}&schedule=${scheduleID}`;
                                 console.log("goButtonUrl",goButtonUrl)
 
 
@@ -151,7 +188,8 @@ function Home() {
                     try {
                         const detailedPlans = await fetchAllPlansDetails();
                         console.log("detailedPlans", detailedPlans);
-                        setUpcomingPlans(detailedPlans);
+                        const validPlans = detailedPlans.filter(plan => plan !== null); // Exclude null plans
+                        setUpcomingPlans(validPlans);
                     } catch (error) {
                         console.error("Failed to fetch all plan details:", error);
                     }
@@ -164,6 +202,58 @@ function Home() {
 
         fetchData();
     }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // 获取用户个人信息
+                const userProfileResponse = await axios.get(server + "exercise/userprofile/", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+
+                if (userProfileResponse.status === 200) {
+                    setUserProfile(userProfileResponse.data);
+                } else {
+                    console.log("Failed to fetch user profile");
+                }
+            } catch (error) {
+                console.error("Error fetching user profile: ", error);
+            }
+        };
+
+        fetchData();
+    }, [userToken]);
+
+     // 当userProfile更新时，获取徽章信息
+    useEffect(() => {
+        const fetchBadgeData = async () => {
+            try {
+                // 确保badge的URL可用
+                if (userProfile && userProfile.badge) {
+                    const badgeResponse = await axios.get(userProfile.badge, {
+                        headers: {
+                             "Content-Type": 'application/json',
+                             "Authorization": "Token " + userToken
+                        }
+                    });
+
+                    if (badgeResponse.status === 200) {
+                        setBadgeData(badgeResponse.data);
+                    } else {
+                        console.log("Failed to fetch badge data");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching badge data: ", error);
+            }
+        };
+
+        fetchBadgeData();
+    }, [userProfile, userToken]);
+
 
 
     if(topage==="Home") {
@@ -207,12 +297,17 @@ function Home() {
                                         </Grid>
                                         <Grid container item direction="column" justifyContent="center"
                                               alignItems="center" xs="auto" sx={{mr: 3}}>
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                Lv.{wellbeing_level}
-                                            </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                Wellbeing Level
-                                            </Typography>
+                                            {/* 徽章信息展示位置 */}
+                                            {
+                                                badgeData && (
+                                                    <>
+                                                        <img src={badgeData.image_url} alt={badgeData.name} style={{width: '50px', height: '50px'}}/>
+                                                        <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                            Wellbeing Level: {userProfile.points}
+                                                        </Typography>
+                                                    </>
+                                                )
+                                            }
                                         </Grid>
                                     </Grid>
                                     <Grid container direction="column" alignItems="center" justifyContent="center"
@@ -223,35 +318,37 @@ function Home() {
                                             </Typography>
                                             <div className="plan-list" style={{ flex: 1, overflowY: 'auto' }}>
                                                 {upcomingPlans.map((plan, index) => (
-                                                    <Grid container item direction="row" justifyContent="flex-start"
-                                                          alignItems="center" xs="auto" sx={{ml: 2, mt: 2, mb: 1}} key={index}>
-                                                        {/* 这里可以根据 plan 对象的具体结构来渲染不同的内容 */}
-                                                        <Grid item>
-                                                            <img src={Plan_1} alt=""/>
+                                                    <Grid container item direction="column" key={index} className="plan-list-row">
+                                                        <Grid container item direction="row" justifyContent="flex-start"
+                                                              alignItems="center" sx={{ml: 2, mt: 2, mb: 1}}>
+                                                            {/* ... Your existing plan display code ... */}
                                                         </Grid>
-                                                        <Grid container item xs={6} direction="column" alignItems="flex-start"
-                                                              justifyContent="center" xs="auto" sx={{ml: 2}}>
-                                                            <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                                {plan.name}
-                                                            </Typography>
-                                                            <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                                {plan.exerciseDetails.name}  {/* 使用运动的名称 */}
-                                                            </Typography>
-
-                                                            <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                                                                {plan.sub_schedules[0].start_time}  {/* 使用 sub_schedules 的时间 */}
-                                                            </Typography>
-                                                        </Grid>
-                                                        <Grid container item direction="row" className="plan-list-row"
-                                                        alignItems="center" xs="auto" sx={{ml: 12}} style={{ paddingRight: '16px' }}>
-                                                            <Button variant="contained" sx={{fontSize: 'h6.fontSize', fontFamily: 'MSYH'}} color="error"
-                                                                    onClick={() => {
-                                                                        window.location.href = plan.goButtonUrl;
-                                                                    }}>
-                                                                Go
-                                                                <BoltIcon variant="small"/>
-                                                            </Button>
-                                                        </Grid>
+                                                        {plan.sub_schedules.map((sub_schedule, subIndex) => (
+                                                            <Grid container item direction="row" justifyContent="flex-start"
+                                                                  alignItems="center" sx={{ml: 2, mt: 2, mb: 1}} key={subIndex}
+                                                                  className="sub-schedule-row">
+                                                                <Grid container item xs={6} direction="row" alignItems="center"
+                                                                      justifyContent="flex-start" sx={{ml: 2}}>
+                                                                    <Grid item xs={10} className="text-container">
+                                                                        <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                                                                            {sub_schedule.start_time}
+                                                                        </Typography>
+                                                                        <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                                                                            {sub_schedule.start_time}
+                                                                        </Typography>
+                                                                    </Grid>
+                                                                    <Grid item xs={2} className="go-button-container">
+                                                                        <Button variant="contained" sx={{fontSize: 'h6.fontSize', fontFamily: 'MSYH'}} color="error"
+                                                                                onClick={() => {
+                                                                                    window.location.href = plan.goButtonUrl;
+                                                                                }}>
+                                                                            Go
+                                                                            <BoltIcon variant="small"/>
+                                                                        </Button>
+                                                                    </Grid>
+                                                                </Grid>
+                                                            </Grid>
+                                                        ))}
                                                     </Grid>
                                                 ))}
                                             </div>
