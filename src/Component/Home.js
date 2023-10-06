@@ -337,7 +337,7 @@ function Home() {
                                                                     </Grid>
                                                                     <Grid item xs={10} className="text-container">
                                                                         <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                                                                            {sub_schedule.start_time}
+                                                                            Date: {sub_schedule.start_time}
                                                                         </Typography>
                                                                     </Grid>
                                                                     <Grid item xs={2} className="go-button-container">
