@@ -303,7 +303,7 @@ function Home() {
                                                     <>
                                                         <img src={badgeData.image_url} alt={badgeData.name} style={{width: '50px', height: '50px'}}/>
                                                         <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                            Wellbeing Level: {userProfile.points}
+                                                            Wellbeing Level
                                                         </Typography>
                                                     </>
                                                 )
