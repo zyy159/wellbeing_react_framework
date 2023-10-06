@@ -327,12 +327,15 @@ function Home() {
                                                             <Grid container item direction="row" justifyContent="flex-start"
                                                                   alignItems="center" sx={{ml: 2, mt: 2, mb: 1}} key={subIndex}
                                                                   className="sub-schedule-row">
-                                                                <Grid container item xs={6} direction="row" alignItems="center"
+                                                                <Grid container item xs={8} direction="row"
+                                                                alignItems="center"
                                                                       justifyContent="flex-start" sx={{ml: 2}}>
-                                                                    <Grid item xs={10} className="text-container">
+                                                                      <Grid item xs={10} className="text-container">
                                                                         <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                                                                            {sub_schedule.start_time}
+                                                                            {plan.name}
                                                                         </Typography>
+                                                                    </Grid>
+                                                                    <Grid item xs={10} className="text-container">
                                                                         <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
                                                                             {sub_schedule.start_time}
                                                                         </Typography>
