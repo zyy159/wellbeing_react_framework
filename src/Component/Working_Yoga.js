@@ -194,8 +194,13 @@ function Working_Yoga(){
                     console.error("Invalid difficulty level");
                     return;
             }
-
-            const exerciseResponse = await axios.get(server+"exercise/exercises/"+exerciseID+"/");
+            const token = cookie.load("token");
+            const exerciseResponse = await axios.get(server+"exercise/exercises/"+exerciseID+"/", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + token
+                            }
+                    });
             const modelStores = exerciseResponse.data.model_stores;
             console.log("exerciseID",exerciseID)
             console.log("exerciseResponse.data",exerciseResponse.data)
