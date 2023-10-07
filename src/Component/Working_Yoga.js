@@ -60,7 +60,7 @@ function Working_Yoga(){
     const [similarityScores, setSimilarityScores] = React.useState([]);
     const [singleSimilarityScores, setSingleSimilarityScores] = React.useState([]);
     const [singleCalories, setSingleCalories] = React.useState(0);
-    const [startTime, setStartTime] = React.useState(null);
+
     const [similarityScore, setSimilarityScore] = React.useState(null);
     const [postActions, setPostActions] = React.useState(false);
     const [imgs, setImgs] = React.useState([{ label: "", imgPath: "", duration: 0, calories: 0 , imgDesc: "",storeUrl:
@@ -334,20 +334,21 @@ function Working_Yoga(){
     // 用于图片轮播的 useEffect
     useEffect(() => {
         let imageIntervalId;
-        let startTime = new Date().toISOString();  // 记录开始时间
-        setStartTime(startTime);
+
         // 当有有效的图片索引，并且图片数组不为空时
         if (shouldStart && imgs && imgs.length > 0 && showIndex < imgs.length && !isPaused) {
+
             const currentDuration = imgs[showIndex].duration;
             // 设置图片轮播的定时器
             imageIntervalId = setInterval(() => {
                 setShowIndex((prevIndex) => prevIndex + 1);
+                setPostActions(true);
             }, currentDuration +5000);
         }
         // 清除图片轮播的定时器
         return () => {
+            console.log('Cleaning up!', { showIndex, shouldStart, postActions });
             clearInterval(imageIntervalId);
-            setPostActions(true);
 
             if(shouldStart && showIndex >= imgs.length - 1){
                 setShouldStart(false);
@@ -360,12 +361,16 @@ function Working_Yoga(){
 
     useEffect(() => {
         // 检查 singleSimilarityScores 是否包含数据
+        console.log('Checking whether to post action...', { singleSimilarityScores, showIndex, postActions });
         if (singleSimilarityScores.length > 0 && showIndex < imgs.length && postActions) {
             const { mean, stdDeviation } = calculateMeanAndStdDeviation(singleSimilarityScores);
             const zScores = calculateZScores(singleSimilarityScores, mean, stdDeviation);
             const stars = calculateStarRating(zScores);
             let endTime = new Date().toISOString();
-            console.log("showIndex",showIndex);
+            console.log("imgs[showIndex].duration",imgs[showIndex].duration);
+            let startTime = new Date(new Date(endTime).getTime() - imgs[showIndex].duration ).toISOString();
+            console.log("startTime",startTime);
+            console.log("endTime",endTime);
             let data = {
                 owner: cookie.load('user_id'),
                 model_store: imgs[showIndex].storeUrl,
