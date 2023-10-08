@@ -16,6 +16,7 @@ import Avatar from '@mui/material/Avatar';
 import { red } from '@mui/material/colors';
 import Typography from "@mui/material/Typography";
 import CardContent from '@mui/material/CardContent';
+import IconButton from '@mui/material/CardContent';
 import FastForwardSharpIcon from '@mui/icons-material/FastForwardSharp';
 import Diversity3SharpIcon from '@mui/icons-material/Diversity3Sharp';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
@@ -24,6 +25,9 @@ import BoltIcon from '@mui/icons-material/Bolt';
 import Divider from '@mui/material/Divider';
 import Button from "@mui/material/Button";
 import {Navigate} from "react-router";
+import Box from '@mui/material/Box';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import Snackbar from '@mui/material/Snackbar';
 
 import cookie from 'react-cookies';
 import axios from 'axios';
@@ -38,9 +42,20 @@ function Home() {
     const [wellbeing_level, setWellbeing_level] = React.useState(null);
     const [total_time, setTotal_time] = React.useState("");
     const [total_score, setTotal_score] = React.useState(0);
+    const [total_likes, setTotal_likes] = React.useState(0);
     const [upcomingPlans, setUpcomingPlans] = React.useState([]);
     const [badgeData, setBadgeData] = React.useState(null);
     const [userProfile, setUserProfile] = React.useState(null);
+    const [userRanking, setUserRanking] = React.useState([]);
+    const [userScore, setUserScore] = React.useState([]);
+    const [userCalorie, setUserCalorie] = React.useState([]);
+    const [userTime, setUserTime] = React.useState([]);
+    const [errorMsg, setErrorMsg] = React.useState(null);
+    const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+    const [snackbarMessage, setSnackbarMessage] = React.useState('');
+    const [snackbarPosition, setSnackbarPosition] = React.useState({ vertical: 'bottom', horizontal: 'left' });
+
+    //const [hasLiked, setHasLiked] = React.useState(false);
 
     const convertToMMDDHHMM = (isoString) => {
         const date = new Date(isoString);
@@ -53,6 +68,200 @@ function Home() {
         return `${localDate} ${localTime}`;
     };
 
+    function timeStringToSeconds(timeString) {
+        // Extract days, hours, minutes, and seconds from the string
+        const dayMatch = timeString.match(/(\d+) days,/);
+        const timeMatch = timeString.match(/(\d{2}):(\d{2}):(\d{2})/);
+
+        const days = dayMatch ? parseInt(dayMatch[1], 10) : 0;
+        const hours = timeMatch ? parseInt(timeMatch[1], 10) : 0;
+        const minutes = timeMatch ? parseInt(timeMatch[2], 10) : 0;
+        const seconds = timeMatch ? parseInt(timeMatch[3], 10) : 0;
+
+        // Convert everything to seconds
+        return (days * 24 * 3600) + (hours * 3600) + (minutes * 60) + seconds;
+    }
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) {
+            console.error("formatTime was called with NaN");
+            return "";
+        }
+
+        const days = Math.floor(seconds / (3600*24));
+        seconds  -= days*3600*24;
+        const hrs   = Math.floor(seconds / 3600);
+        seconds  -= hrs*3600;
+        const mnts = Math.floor(seconds / 60);
+        seconds  -= mnts*60;
+
+        if(days > 0) {
+            return `${days} Days ${hrs} Hours`;
+        } else if(hrs > 0) {
+            return `${hrs} Hours ${mnts} Minutes`;
+        } else if(mnts > 0) {
+            return `${mnts} Minutes ${seconds} Seconds`;
+        } else {
+            return `${seconds} Seconds`;
+        }
+    }
+
+    function formatScore(score) {
+        if (score >= 1000) {
+            return (score / 1000).toFixed(1) + "K";
+        } else {
+            return score;
+        }
+    }
+
+    const formatLikes = (likes) => {
+        return likes >= 1000 ? (likes / 1000).toFixed(1) + 'K' : likes;
+    };
+
+    const handleLike = async (likee) => {
+        try {
+            //get current user ID
+            const userresponse = await axios.get(server + "rest-auth/user/", {
+                        headers: {
+                            "Content-Type": 'application/json',
+                            "Authorization": "Token " + userToken
+                        }
+                    });
+            console.log("userresponse",userresponse);
+
+            const liker = userresponse.data.pk;
+            let data = {
+                liker: liker,
+                likee: likee  // 使用传递进来的likee参数
+            };
+            await axios.post(server + "exercise/like/", data, {
+                headers: {"Content-Type": 'application/json', "Authorization": "Token " + userToken}
+            });
+
+            // 更新点赞数和hasLiked状态
+            const updatedRanking = userRanking.map(user =>
+                user.pk === likee
+                    ? {...user, likes_received: user.likes_received + 1, hasLiked: true}
+                    : user
+            );
+            setUserRanking(updatedRanking);
+            // 重新获取用户排名
+            //await fetchUserRanking();
+        } catch (error) {
+            console.error("Failed to like:", error.response);
+            setSnackbarMessage(error.response.data.error  || "Failed to like"); // Set the error message
+            setSnackbarOpen(true); // Open the Snackbar with the new message
+        }
+    };
+
+    const MembershipUserList = ({ userRanking, handleLike }) => {
+        return (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {userRanking.slice(0, 100).map((user, index) => (
+                    <div key={user.pk} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <Typography variant="subtitle1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                            Top {index + 1}: {user.username} - {formatScore(user.points)} points
+                        </Typography>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
+                                {formatLikes(user.likes_received)}
+                            </Typography>
+                            {errorMsg && (
+                                <Typography variant="body2" sx={{ color: 'red' }}>
+                                    {errorMsg}
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const ScoreUserList = ({ userScore, handleLike }) => {
+        return (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {userScore.slice(0, 100).map((user, index) => (
+                    <div key={user.pk} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <Typography variant="subtitle1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                            Top {index + 1}: {user.username} - {formatScore(user.total_score)} Score
+                        </Typography>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
+                                {formatLikes(user.likes_received)}
+                            </Typography>
+                            {errorMsg && (
+                                <Typography variant="body2" sx={{ color: 'red' }}>
+                                    {errorMsg}
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const TimeUserList = ({ userTime, handleLike }) => {
+        return (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {userTime.slice(0, 100).map((user, index) => (
+                    <div key={user.pk} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <Typography variant="subtitle1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                            Top {index + 1}: {user.username} - {formatScore(user.total_time)} points
+                        </Typography>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
+                                {formatLikes(user.likes_received)}
+                            </Typography>
+                            {errorMsg && (
+                                <Typography variant="body2" sx={{ color: 'red' }}>
+                                    {errorMsg}
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const CalorieUserList = ({ userCalorie, handleLike }) => {
+        return (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {userCalorie.slice(0, 100).map((user, index) => (
+                    <div key={user.pk} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <Typography variant="subtitle1" sx={{mt: 1, fontFamily: 'MSYH'}}>
+                            Top {index + 1}: {user.username} - {formatScore(user.total_calories)} Calories
+                        </Typography>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
+                                {formatLikes(user.likes_received)}
+                            </Typography>
+                            {errorMsg && (
+                                <Typography variant="body2" sx={{ color: 'red' }}>
+                                    {errorMsg}
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
     useEffect(() => {
             if(!cookie.load('user_id')){
                 history.push({pathname:"/SignIn",state:{}});
@@ -61,6 +270,73 @@ function Home() {
                 setUserToken(cookie.load("token"));
             }
     }, []);
+
+    const fetchUserRanking = async () => {
+        try {
+            const response = await axios.get(server + "exercise/userlist/?sortby=points", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+            console.log("fetchUserRanking",response.data);
+            setUserRanking(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user ranking:", error);
+        }
+    };
+
+    const fetchUserScore = async () => {
+        try {
+            const response = await axios.get(server + "exercise/userlist/?sortby=total_score", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+            console.log("fetchUserScore",response.data);
+            setUserScore(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user score:", error);
+        }
+    };
+
+    const fetchUserTime = async () => {
+        try {
+            const response = await axios.get(server + "exercise/userlist/?sortby=total_time", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+            console.log("fetchUserScore",response.data);
+            setUserTime(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user score:", error);
+        }
+    };
+
+    const fetchUserCalorie = async () => {
+        try {
+            const response = await axios.get(server + "exercise/userlist/?sortby=total_calories", {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+            console.log("fetchUserScore",response.data);
+            setUserCalorie(response.data);
+        } catch (error) {
+            console.error("Failed to fetch user score:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchUserRanking();
+        fetchUserScore();
+        fetchUserTime();
+        fetchUserCalorie();
+    }, [userToken]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -80,6 +356,9 @@ function Home() {
                     });
 
                     if (summaryResponse.status === 200) {
+                        console.log("Total time from API:", summaryResponse.data["total_time"]);
+                        console.log("ummaryResponse.data:", summaryResponse.data);
+
                         cookie.save("email", summaryResponse.data["email"], { maxAge: 60 * 60 * 24 * 365 });
                         setWellbeing_level(summaryResponse.data["wellbeing_level"]);
                         setTotal_score(summaryResponse.data["total_score"]);
@@ -215,6 +494,7 @@ function Home() {
                 });
 
                 if (userProfileResponse.status === 200) {
+                    console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
                 } else {
                     console.log("Failed to fetch user profile");
@@ -250,11 +530,9 @@ function Home() {
                 console.error("Error fetching badge data: ", error);
             }
         };
-
+        console.log("userProfile",userProfile,userToken);
         fetchBadgeData();
     }, [userProfile, userToken]);
-
-
 
     if(topage==="Home") {
         return (
@@ -279,32 +557,52 @@ function Home() {
                                         <Grid container item direction="column" justifyContent="center"
                                               alignItems="center" xs="auto" sx={{mr: 3}}
                                         >
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {total_time}
+                                            <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                {formatTime(timeStringToSeconds(total_time))}
                                             </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                Exercise Time
-                                            </Typography>
+                                            <Box height={30}>
+                                                <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                    Exercise Time
+                                                </Typography>
+                                            </Box>
                                         </Grid>
                                         <Grid container item direction="column" justifyContent="center"
-                                              alignItems="center" xs="auto" sx={{mr: 3}}>
-                                            <Typography variant="h4" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {total_score}
+                                              alignItems="center" xs="auto" sx={{mr: 3}}
+                                        >
+                                            <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                {formatScore(total_score)}
                                             </Typography>
-                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                Total Score Points
-                                            </Typography>
+                                            <Box height={30}>
+                                                <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                    Score Points
+                                                </Typography>
+                                            </Box>
                                         </Grid>
                                         <Grid container item direction="column" justifyContent="center"
-                                              alignItems="center" xs="auto" sx={{mr: 3}}>
+                                              alignItems="center" xs="auto" sx={{mr: 3}}
+                                        >
+                                            <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                {userProfile && typeof userProfile.likes_received === 'number' ? formatScore(userProfile.likes_received) : '0'}
+                                            </Typography>
+                                            <Box height={30}>
+                                                <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                    People Like You
+                                                </Typography>
+                                            </Box>
+                                        </Grid>
+                                        <Grid container item direction="column" justifyContent="center"
+                                              alignItems="center" xs="auto" sx={{mr: 3}}
+                                        >
                                             {/* 徽章信息展示位置 */}
                                             {
                                                 badgeData && (
                                                     <>
-                                                        <img src={badgeData.image_url} alt={badgeData.name} style={{width: '50px', height: '50px'}}/>
-                                                        <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                            Wellbeing Level
-                                                        </Typography>
+                                                        <img src={badgeData.image_url} alt={badgeData.name} style={{width: '40px', height: '40px'}}/>
+                                                        <Box height={40}>
+                                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                                Wellbeing Level
+                                                            </Typography>
+                                                        </Box>
                                                     </>
                                                 )
                                             }
@@ -312,7 +610,8 @@ function Home() {
                                     </Grid>
                                     <Grid container direction="column" alignItems="center" justifyContent="center"
                                           sx={{mt: 1}}>
-                                        <Card sx={{ width: 500, height: 330, display: 'flex', flexDirection: 'column' }}>
+                                        <Card sx={{ width: 600, height: 330, display: 'flex', flexDirection: 'column'
+                                        }}>
                                             <Typography variant="h5" sx={{m: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                                                 Upcoming Plans
                                             </Typography>
@@ -321,7 +620,6 @@ function Home() {
                                                     <Grid container item direction="column" key={index} className="plan-list-row">
                                                         <Grid container item direction="row" justifyContent="flex-start"
                                                               alignItems="center" sx={{ml: 2, mt: 2, mb: 1}}>
-                                                            {/* ... Your existing plan display code ... */}
                                                         </Grid>
                                                         {plan.sub_schedules.map((sub_schedule, subIndex) => (
                                                             <Grid container item direction="row" justifyContent="flex-start"
@@ -371,68 +669,47 @@ function Home() {
                                     </Grid>
                                 </Grid>
                             </Paper>
-                            <Card sx={{ml: 4, width: 700, height: 500}}>
+                            <Card sx={{ml: 4, width: 600, height: 500}}>
                                 <PicList/>
                             </Card>
                         </Grid>
-                        <Grid container item direction="row" alignItems="center" justifyContent="center"
-                              sx={{mt: 4, width: 1300}} className="Block">
-                            <Card>
-                                <img src={Yoga} className="Yoga"/>
+                        <Grid container item direction="row" alignItems="center" justifyContent="space-around"
+                        sx={{mt: 4, width: 1300}} spacing={1}>
+                            <Card sx={{ width: '30%' }}>
                                 <CardContent>
-                                    <Button variant={"text"} color="error"
-                                            onClick={() => {
-                                                history.push({pathname: "/Yoga", state: {}});
-                                                setTopage("Yoga")
-                                            }}
-                                    >
-                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center"
-                                              xs="auto">
-                                            <FastForwardSharpIcon/>
-                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                Quick Start
-                                            </Typography>
-                                        </Grid>
-                                    </Button>
-                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'MSYH'}}>
-                                        Start your journey with a 2 mins Yoga!!!
+                                    <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily:
+                                    'MSYH',textAlign: 'center' }}>
+                                        Membership Points Leaderboard
                                     </Typography>
+                                    <MembershipUserList userRanking={userRanking} handleLike={handleLike} />
                                 </CardContent>
                             </Card>
-                            <Card sx={{ml: 2}}>
-                                <img src={Scheme} className="Scheme"/>
+                            <Card sx={{ width: '30%' }}>
                                 <CardContent>
-                                    <Button variant={"text"} color="error">
-                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center"
-                                              xs="auto">
-                                            <EventAvailableIcon/>
-                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                               Join our Scheme
-                                            </Typography>
-                                        </Grid>
-                                    </Button>
-                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'MSYH'}}>
-                                        Join us with a Scheme!!!
+                                    <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily:
+                                    'MSYH',textAlign: 'center' }}>
+                                        Exercise Scores Leaderboard
                                     </Typography>
+                                    <ScoreUserList userScore={userScore} handleLike={handleLike} />
                                 </CardContent>
                             </Card>
-                            <Card sx={{ml: 2}}>
-                                <img src={Running} className="Running"/>
+                            <Card sx={{ width: '30%' }}>
                                 <CardContent>
-                                    <Button variant={"text"} color="error">
-                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center"
-                                              xs="auto">
-                                            <Diversity3SharpIcon/>
-                                            <Typography variant="h6" sx={{ml: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                               Join our Scheme
-                                            </Typography>
-                                        </Grid>
-                                    </Button>
-                                    <Typography variant="subtitle1" sx={{mt: 1, ml: 1, fontFamily: 'MSYH'}}>
-                                        Find your friends and get started together!!!
+                                    <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily:
+                                    'MSYH',textAlign: 'center' }}>
+                                        Calories Burnt Leaderboard
                                     </Typography>
+                                    <CalorieUserList userCalorie={userRanking} handleLike={handleLike} />
                                 </CardContent>
                             </Card>
+                            {/* Place Snackbar here */}
+                            <Snackbar
+                                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                                open={snackbarOpen}
+                                autoHideDuration={6000}  // 6 秒后自动隐藏
+                                onClose={() => setSnackbarOpen(false)}
+                                message={snackbarMessage}
+                            />
                         </Grid>
                     </Grid>
                 </div>
