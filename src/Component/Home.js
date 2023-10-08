@@ -43,6 +43,7 @@ function Home() {
     const [total_time, setTotal_time] = React.useState("");
     const [total_score, setTotal_score] = React.useState(0);
     const [total_likes, setTotal_likes] = React.useState(0);
+    const [likes_received, setlikes_received] = React.useState(0);
     const [upcomingPlans, setUpcomingPlans] = React.useState([]);
     const [badgeData, setBadgeData] = React.useState(null);
     const [userProfile, setUserProfile] = React.useState(null);
@@ -496,6 +497,8 @@ function Home() {
                 if (userProfileResponse.status === 200) {
                     console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
+                    console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
+                    setlikes_received(userProfileResponse.data.likes_received);
                 } else {
                     console.log("Failed to fetch user profile");
                 }
@@ -582,7 +585,7 @@ function Home() {
                                               alignItems="center" xs="auto" sx={{mr: 3}}
                                         >
                                             <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {userProfile && typeof userProfile.likes_received === 'number' ? formatScore(userProfile.likes_received) : '0'}
+                                                {formatScore(likes_received)}
                                             </Typography>
                                             <Box height={30}>
                                                 <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
