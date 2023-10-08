@@ -7,65 +7,79 @@ import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import SwipeableViews from 'react-swipeable-views';
 import {autoPlay} from "react-swipeable-views-utils";
-
-import Rocket from '../Picture/Home_Rocket.png';
-import Yoga from '../Picture/Home_Yoga_top.png';
-import Running from '../Picture/Home_Running_top.png';
-import Scheme from '../Picture/Home_Scheme_top.png'
-
+import Typography from '@mui/material/Typography';
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
+
 
 function PicList() {
     const theme = useTheme();
-    const [activeStep, setActiveStep] = React.useState(0)
-    const images = [
-        {
-            label: "Rocket",
-            imgPath: Rocket,
-        },
-        {
-            label: "Yoga",
-            imgPath: Yoga ,
-        },
-        {
-            label: "Running",
-            imgPath: Running ,
-        },
-        {
-            label: "Scheme",
-            imgPath: Scheme,
-        },
-    ]
-    const maxSteps = images.length;
+    const [activeStep, setActiveStep] = React.useState(0);
 
-    const handleNext = () =>{
-        setActiveStep((preActiveStep) => preActiveStep + 1);
-    }
+    // 这里定义你的笔记
+    const notes = [
+    {
+        title:    'Wellbeing Gallery Points Rules',
+        content:
+        `Point Acquisition:
+        - Daily Login: Earn 5 points each day you log into Wellbeing Gallery.
+        - Completing Exercise Tutorials: Earn 10 points for each exercise tutorial completed.
+        - Consistent Exercise: Earn an additional 50 points for completing exercise tutorials for 7 consecutive days.
+        - Sharing Experiences: Earn 20 points for sharing your fitness experiences on the internal social platform.
+        - Participating in Team Challenges: Earn 30 points for participating in team challenges.
+        - Completing Team Challenges: When a team successfully completes a challenge, each member earns an additional 50 points.
+        - Referring a Colleague: Earn 40 points for referring a colleague to join Wellbeing Gallery and complete their first exercise.
 
-    const handleBack = () =>{
-        setActiveStep((preActiveStep) => preActiveStep - 1);
-    }
+        Point Levels:
+        Employees can reach different levels based on their accumulated points, and each level comes with its own specific badge and rewards.
+        - Bronze: 0-500 points
+        - Silver: 501-1500 points
+        - Gold: 1501-3000 points
+        - Platinum: 3001-5000 points
+        - Diamond: 5001 points and above
 
-    const handleStepChange = (step) =>{
+        Point Expiry:
+        To encourage ongoing participation, points may expire after one year. Employees can use them before they expire, or engage in activities to extend their validity.
+
+        User Interface:
+        On the Wellbeing Gallery user interface, employees can view their point balance, point history, and points that are about to expire.
+        They can also view their level, badges earned, and rewards that can be redeemed.`
+        },
+            //... 更多笔记
+        ];
+
+
+    const maxSteps = notes.length;
+
+    const handleNext = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    };
+
+    const handleBack = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    };
+
+    const handleStepChange = (step) => {
         setActiveStep(step);
-    }
+    };
 
     return (
-        <Box sx ={{ flexGrow: 1 }}>
+        <Box sx={{ flexGrow: 1 }}>
             <AutoPlaySwipeableViews
                 axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
                 index={activeStep}
                 onChangeIndex={handleStepChange}
                 enableMouseEvents
             >
-                {images.map((step,index) => (
-                    <div key={step.label}>
-                    {Math.abs(activeStep - index) <= 2 ? (
-                        <img width = "100%" height = "450"
-                            src={step.imgPath}
-                            alt={step.label}
-                        />)
-                        : null}
+                {notes.map((note, index) => (
+                    <div key={index} style={{ overflowY: 'auto', maxHeight: '500px', padding: '16px' }}>
+                        {Math.abs(activeStep - index) <= 2 ? (
+                            <>
+                                <Typography variant="h6" align="center" gutterBottom>
+                                    {note.title}
+                                </Typography>
+                                <p style={{ whiteSpace: 'pre-line' }}>{note.content}</p>
+                            </>
+                        ) : null}
                     </div>
                 ))}
             </AutoPlaySwipeableViews>
@@ -75,7 +89,7 @@ function PicList() {
                 activeStep={activeStep}
                 backButton={
                     <Button size="small" onClick={handleBack} color="error" disabled={activeStep === 0} sx={{ fontFamily: 'MSYH' }}>
-                        {theme.direction === "rt1" ? (
+                        {theme.direction === "rtl" ? (
                             <KeyboardArrowRight/>
                         ) : (
                             <KeyboardArrowLeft/>
@@ -85,12 +99,12 @@ function PicList() {
                 }
                 nextButton={
                     <Button size="small" onClick={handleNext} color="error" disabled={activeStep === maxSteps - 1} sx={{ fontFamily: 'MSYH' }}>
-                        {theme.direction === "rt1" ? (
+                        Next
+                        {theme.direction === "rtl" ? (
                             <KeyboardArrowLeft/>
                         ) : (
                             <KeyboardArrowRight/>
                         )}
-                        Next
                     </Button>
                 }
             />
