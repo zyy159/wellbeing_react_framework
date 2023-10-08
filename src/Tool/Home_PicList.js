@@ -22,7 +22,7 @@ function PicList() {
         content:
         `Point Acquisition:
         - Daily Login: Earn 5 points each day you log into Wellbeing Gallery.
-        - Completing Exercise Tutorials: Earn 10 points for each exercise tutorial completed.
+        - Completing Exercise Tutorials: Earn 2 points for each action for an exercise tutorial completed.
         - Consistent Exercise: Earn an additional 50 points for completing exercise tutorials for 7 consecutive days.
         - Sharing Experiences: Earn 20 points for sharing your fitness experiences on the internal social platform.
         - Participating in Team Challenges: Earn 30 points for participating in team challenges.
