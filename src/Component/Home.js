@@ -28,6 +28,7 @@ import {Navigate} from "react-router";
 import Box from '@mui/material/Box';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Snackbar from '@mui/material/Snackbar';
+import moment from 'moment';
 
 import cookie from 'react-cookies';
 import axios from 'axios';
@@ -624,7 +625,7 @@ function Home() {
                                                         <Grid container item direction="row" justifyContent="flex-start"
                                                               alignItems="center" sx={{ml: 2, mt: 2, mb: 1}}>
                                                         </Grid>
-                                                        {plan.sub_schedules.map((sub_schedule, subIndex) => (
+                                                            {plan.sub_schedules.filter(sub_schedule => moment(sub_schedule.start_time, "MM-DD HH:mm") > moment()).map((sub_schedule, subIndex) => (
                                                             <Grid container item direction="row" justifyContent="flex-start"
                                                                   alignItems="center" sx={{ml: 2, mt: 2, mb: 1}} key={subIndex}
                                                                   className="sub-schedule-row">
