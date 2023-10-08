@@ -161,7 +161,7 @@ function ExerciseOption() {
     }else if(topage==="MakeSchedule"){
         return <Navigate to={path} replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/" replace={true} />
+        return <Navigate to="/Home" replace={true} />
     }
 }
 
