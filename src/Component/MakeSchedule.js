@@ -343,7 +343,7 @@ function MakeSchedule(){
                                                         <ListItemText>
                                                             <Typography variant="h6"
                                                                         sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                                One Week Mountain
+                                                                 {exercise_info.name}
                                                             </Typography>
                                                             <Typography variant="h7"
                                                                         sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1, fontFamily: 'MSYH'}}
