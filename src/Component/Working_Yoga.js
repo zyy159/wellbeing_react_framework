@@ -101,12 +101,12 @@ function Working_Yoga(){
         setShouldStart(true);
         setIsPaused(false);
         setShowPaused(true);
-        console.log("showCongratulations01",showCongratulations,showStars);
+        //console.log("showCongratulations01",showCongratulations,showStars);
         setfirstLoad(false);
         setPostActions(false);
         setShowCongratulations(false);  // 设置为 true 以显示 "Congratulation"
         setShowStars(false);  // 设置为 true 以显示 "Stars"
-        console.log("showCongratulations02",showCongratulations,showStars);
+        //console.log("showCongratulations02",showCongratulations,showStars);
         setStatus("In Progress");
     }
     const change = (index) => {
@@ -202,9 +202,9 @@ function Working_Yoga(){
                             }
                     });
             const modelStores = exerciseResponse.data.model_stores;
-            console.log("exerciseID",exerciseID)
-            console.log("exerciseResponse.data",exerciseResponse.data)
-            console.log("modelStores",modelStores)
+            //console.log("exerciseID",exerciseID)
+            //console.log("exerciseResponse.data",exerciseResponse.data)
+            //console.log("modelStores",modelStores)
             if (modelStores.length > 0) {
                 const fetchedModels = await Promise.all(modelStores.map(async (storeUrl) => {
                     const response = await axios.get(storeUrl);
@@ -220,7 +220,7 @@ function Working_Yoga(){
                 const sortedModels = fetchedModels.sort((a, b) => {
                     return a.label.localeCompare(b.label);
                 });
-                console.log("setImgs fetchedModels",fetchedModels);
+                //console.log("setImgs fetchedModels",fetchedModels);
                 setImgs(sortedModels);
 
                 // 你也可以在这里更新其他依赖于 imgs 的状态
@@ -268,9 +268,9 @@ function Working_Yoga(){
   }, [location.search]);  // 依赖于 location.search
     // 在 useEffect 中调用该函数
     useEffect(() => {
-        console.log("fetchAndSetData start")
+        //console.log("fetchAndSetData start")
         if (exerciseID) {
-            console.log("exerciseID fetchAndSetData",exerciseID);
+            //console.log("exerciseID fetchAndSetData",exerciseID);
             // exerciseID 有值，可以运行代码
             fetchAndSetData();
         } else {
@@ -347,7 +347,7 @@ function Working_Yoga(){
         }
         // 清除图片轮播的定时器
         return () => {
-            console.log('Cleaning up!', { showIndex, shouldStart, postActions });
+            //console.log('Cleaning up!', { showIndex, shouldStart, postActions });
             clearInterval(imageIntervalId);
 
             if(shouldStart && showIndex >= imgs.length - 1){
@@ -361,16 +361,16 @@ function Working_Yoga(){
 
     useEffect(() => {
         // 检查 singleSimilarityScores 是否包含数据
-        console.log('Checking whether to post action...', { singleSimilarityScores, showIndex, postActions });
+        //console.log('Checking whether to post action...', { singleSimilarityScores, showIndex, postActions });
         if (singleSimilarityScores.length > 0 && showIndex < imgs.length && postActions) {
             const { mean, stdDeviation } = calculateMeanAndStdDeviation(singleSimilarityScores);
             const zScores = calculateZScores(singleSimilarityScores, mean, stdDeviation);
             const stars = calculateStarRating(zScores);
             let endTime = new Date().toISOString();
-            console.log("imgs[showIndex].duration",imgs[showIndex].duration);
+            //console.log("imgs[showIndex].duration",imgs[showIndex].duration);
             let startTime = new Date(new Date(endTime).getTime() - imgs[showIndex].duration ).toISOString();
-            console.log("startTime",startTime);
-            console.log("endTime",endTime);
+            //console.log("startTime",startTime);
+            //console.log("endTime",endTime);
             let data = {
                 owner: cookie.load('user_id'),
                 model_store: imgs[showIndex].storeUrl,
@@ -384,7 +384,7 @@ function Working_Yoga(){
             const token = cookie.load("token");
             axios.post(server+"exercise/actions/", data, {headers:{"Content-Type":'application/json',"Authorization": "Token "+token}})
                 .then(response => {
-                    console.log("Data sent successfully:", response.data);
+                    console.log("Data sent successfully");
                 })
                 .catch(error => {
                     console.error("Error sending data:", error);
@@ -457,16 +457,16 @@ function Working_Yoga(){
                     setIsImageLoaded(true);
                     // 当姿态预测完成时，设置
                     setIsPoseEstimated(true);
-                    console.log("Image is loaded, estimating pose...");
+                    //console.log("Image is loaded, estimating pose...");
                     const pose = await net.estimateSinglePose(imageElement);
-                    console.log("Pose estimation result:", pose);
+                    //console.log("Pose estimation result:", pose);
                     setImagePose(pose);
                 } else {
                     // If image is not loaded, set up a listener to run pose estimation once it does
                     imageElement.onload = async () => {
-                        console.log("Image onload is loaded, estimating pose...");
+                        //console.log("Image onload is loaded, estimating pose...");
                         const pose = await net.estimateSinglePose(imageElement);
-                        console.log("Pose onload estimation result:", pose);
+                        //console.log("Pose onload estimation result:", pose);
                         // 当图片加载完成时，设置
                         setIsImageLoaded(true);
                         // 当姿态预测完成时，设置
@@ -489,8 +489,8 @@ function Working_Yoga(){
             formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
 //            console.log("Start Compare Timestamp:", formattedTime);
 //            console.log("useEffect trigger");
-            console.log("poseFromImage:", imagePose);
-            console.log("poseFromVideo:", videoPose);
+            //console.log("poseFromImage:", imagePose);
+            //console.log("poseFromVideo:", videoPose);
             let tmpsimilarityScore = poseSimilarity(videoPose, imagePose);
             //使用全连接的前馈神经网络（Feedforward Neural Network, FNN）
             //let tmpsimilarityScore = FNNposeSimilarity(videoPose, imagePose);
@@ -554,7 +554,7 @@ function Working_Yoga(){
 
     useEffect(() => {
         if (showStars) {
-            console.log("similarityScores",similarityScores)
+            //console.log("similarityScores",similarityScores)
             onCarouselComplete(similarityScores)
         }
      }, [shouldStart]);
@@ -582,10 +582,10 @@ function Working_Yoga(){
         const n = zScores.length;
         switch (difficulty) {
             case "Easy":
-                confidential = 0;
+                confidential = 0.3;
                 break;
             case "Medium":
-                confidential = 0.4;
+                confidential = 0.6;
                 break;
             case "Hard":
                 confidential = 0.8;
@@ -656,13 +656,13 @@ function Working_Yoga(){
         // 添加新的相似度分数到数组中
         setSimilarityScores(prevScores => [...prevScores, similarityScore]);
         setSimilarityScore(similarityScore);
-        console.log("FNN Similarity:", similarityScore);
+        //console.log("FNN Similarity:", similarityScore);
         return similarityScore;
     }
 
     // Normalize keypoints based on the nose position
     function normalize_keypoints(keypoints) {
-        console.log('keypoints:', keypoints);
+        //console.log('keypoints:', keypoints);
         const nose_x = keypoints[0].position.x;
         const nose_y = keypoints[0].position.y;
         const normalized_keypoints = keypoints.map(keypoint => {
@@ -714,8 +714,8 @@ function Working_Yoga(){
         return similarConfidenceCount / keypoints1.length; // This will give us the percentage of keypoints with similar confidence
     }
     function poseSimilarity(pose1, pose2) {
-        console.log('ImagePose 1:', pose1);
-        console.log('VideoPose 2:', pose2);
+        //console.log('ImagePose 1:', pose1);
+        //console.log('VideoPose 2:', pose2);
 
         const normalized_keypoints1 = normalize_keypoints(pose1.keypoints);
         const normalized_keypoints2 = normalize_keypoints(pose2.keypoints);
@@ -727,11 +727,11 @@ function Working_Yoga(){
         const array1 = keypoints_to_array(normalized_keypoints1);
         const array2 = keypoints_to_array(normalized_keypoints2);
         const similarity = cosine_similarity(array1, array2);
-        console.log("Original Cosine Similarity:", similarity);
-        console.log("confidenceSimilarity:", confidenceSimilarity);
+//        console.log("Original Cosine Similarity:", similarity);
+//        console.log("confidenceSimilarity:", confidenceSimilarity);
         //console.log("Similarity Percentage:", (similarity + 1) / 2 * 100); // Convert range from [-1, 1] to [0, 100]
         let similarityScore = (similarity + 1) / 2 * 100 * confidenceSimilarity;
-        console.log("Finetune Cosine Similarity::", similarityScore);
+        //console.log("Finetune Cosine Similarity::", similarityScore);
         // 添加新的相似度分数到数组中
         setSimilarityScores(prevScores => [...prevScores, similarityScore]);
         //console.log("start setSingleSimilarityScores")
