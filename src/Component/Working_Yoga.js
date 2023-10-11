@@ -930,7 +930,7 @@ function Working_Yoga(){
                                                             <img alt="" crossOrigin="anonymous"
                                                                 ref={imageRefs[index]}
                                                                 id="Pose"
-                                                                src={value.imgPath + '?timestamp=' + Math.random()}
+                                                                src={value.imgPath }
                                                                 alt="Pose"
                                                                 //onLoad={() => handleImageLoad(index)}
                                                                 key={index}
