@@ -130,7 +130,7 @@ function SignUp() {
         var code = '' + (parseInt(Math.random()*1000000)+1000000);
         code = code.substring(1, 7);
         cookie.save("security_code",code);
-        emailjs.send("service_jvzt6uc","template_qu1hm1r", {
+        emailjs.send("service_89efw7f","template_qu1hm1r", {
             to_name: values.username,
             to_email: values.email,
             code: code,
