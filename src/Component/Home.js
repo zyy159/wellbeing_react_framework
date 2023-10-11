@@ -290,7 +290,7 @@ function Home() {
 
     const fetchUserScore = async () => {
         try {
-            const response = await axios.get(server + "exercise/userlist/?sortby=total_score", {
+            const response = await axios.get(server + "exercise/userlist/?sort_by=total_score", {
                     headers: {
                         "Content-Type": 'application/json',
                         "Authorization": "Token " + userToken
@@ -305,7 +305,7 @@ function Home() {
 
     const fetchUserTime = async () => {
         try {
-            const response = await axios.get(server + "exercise/userlist/?sortby=total_time", {
+            const response = await axios.get(server + "exercise/userlist/?sort_by=total_time", {
                     headers: {
                         "Content-Type": 'application/json',
                         "Authorization": "Token " + userToken
@@ -320,13 +320,13 @@ function Home() {
 
     const fetchUserCalorie = async () => {
         try {
-            const response = await axios.get(server + "exercise/userlist/?sortby=total_calories", {
+            const response = await axios.get(server + "exercise/userlist/?sort_by=total_calories", {
                     headers: {
                         "Content-Type": 'application/json',
                         "Authorization": "Token " + userToken
                     }
                 });
-            console.log("fetchUserScore",response.data);
+            console.log("setUserCalorie",response.data);
             setUserCalorie(response.data);
         } catch (error) {
             console.error("Failed to fetch user score:", error);
@@ -334,10 +334,13 @@ function Home() {
     };
 
     useEffect(() => {
-        fetchUserRanking();
-        fetchUserScore();
-        fetchUserTime();
-        fetchUserCalorie();
+        if(userToken){
+            console.log("userToken",userToken);
+            fetchUserRanking();
+            fetchUserScore();
+            fetchUserTime();
+            fetchUserCalorie();
+        }
     }, [userToken]);
 
     useEffect(() => {
@@ -378,13 +381,18 @@ function Home() {
                     });
 
                     const allPlans = schedulesResponse.data.results;  // 注意这里从 response.data 中取出了 results 字段
-//                    console.log("allPlans",allPlans);
-//                    console.log("cookie.load('user_id'",cookie.load('user_id'));
+                    console.log("allPlans",allPlans);
+                    console.log("cookie.load('user_id'",cookie.load('user_id'));
                     const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
                     console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
-                            const response = await axios.get(exerciseUrl);
+                            const response = await axios.get(exerciseUrl,{
+                                headers: {
+                                    "Content-Type": 'application/json',
+                                    "Authorization": "Token " + token
+                                }
+                            });
                             console.log("exercise/schedules/", response.data);
                             return response.data;
                         } catch (error) {
@@ -468,7 +476,7 @@ function Home() {
 
                     try {
                         const detailedPlans = await fetchAllPlansDetails();
-                        console.log("detailedPlans", detailedPlans);
+
                         const validPlans = detailedPlans.filter(plan => plan !== null); // Exclude null plans
                         setUpcomingPlans(validPlans);
                     } catch (error) {
@@ -507,8 +515,11 @@ function Home() {
                 console.error("Error fetching user profile: ", error);
             }
         };
+        if(userToken){
+            console.log("user profile token",userToken)
+            fetchData();
+        }
 
-        fetchData();
     }, [userToken]);
 
      // 当userProfile更新时，获取徽章信息
@@ -703,7 +714,7 @@ function Home() {
                                     'MSYH',textAlign: 'center' }}>
                                         Calories Burnt Leaderboard
                                     </Typography>
-                                    <CalorieUserList userCalorie={userRanking} handleLike={handleLike} />
+                                    <CalorieUserList userCalorie={userCalorie} handleLike={handleLike} />
                                 </CardContent>
                             </Card>
                             {/* Place Snackbar here */}
