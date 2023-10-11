@@ -88,7 +88,7 @@ function ResetPassword() {
         var code = '' + (parseInt(Math.random()*1000000)+1000000);
         code = code.substring(1, 7);
         cookie.save("security_code",code);
-        emailjs.send("service_jvzt6uc","template_mhjmx5k", {
+        emailjs.send("service_89efw7f","template_mhjmx5k", {
             to_name: username,
             to_email: values.email,
             code: code,
