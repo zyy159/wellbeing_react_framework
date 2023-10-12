@@ -7,6 +7,7 @@ import 'font-awesome/css/font-awesome.min.css';
 
 import { Line } from 'react-chartjs-2';
 import * as posenet from '@tensorflow-models/posenet';
+import { poseSimilarity } from 'posenet-similarity';
 import * as tf from '@tensorflow/tfjs';
 import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
 import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
@@ -491,7 +492,7 @@ function Working_Yoga(){
 //            console.log("useEffect trigger");
             //console.log("poseFromImage:", imagePose);
             //console.log("poseFromVideo:", videoPose);
-            let tmpsimilarityScore = poseSimilarity(videoPose, imagePose);
+            let tmpsimilarityScore = CosineposeSimilarity(videoPose, imagePose);
             //使用全连接的前馈神经网络（Feedforward Neural Network, FNN）
             //let tmpsimilarityScore = FNNposeSimilarity(videoPose, imagePose);
             // 计算每一帧的平均卡路里
@@ -713,7 +714,7 @@ function Working_Yoga(){
 
         return similarConfidenceCount / keypoints1.length; // This will give us the percentage of keypoints with similar confidence
     }
-    function poseSimilarity(pose1, pose2) {
+    function CosineposeSimilarity(pose1, pose2) {
         //console.log('ImagePose 1:', pose1);
         //console.log('VideoPose 2:', pose2);
 
@@ -727,18 +728,24 @@ function Working_Yoga(){
         const array1 = keypoints_to_array(normalized_keypoints1);
         const array2 = keypoints_to_array(normalized_keypoints2);
         const similarity = cosine_similarity(array1, array2);
-//        console.log("Original Cosine Similarity:", similarity);
+        const consineDistance = poseSimilarity(pose1, pose2, {strategy:'cosineDistance'});
+        let mapScore = 0;
+        if(consineDistance>0.5 || consineDistance<0) {
+         mapScore = 0;} else {
+         mapScore = 1 - consineDistance;
+         mapScore = Math.round((mapScore-0.5)*200) }
+        console.log("similarityCompare", similarity, mapScore);
 //        console.log("confidenceSimilarity:", confidenceSimilarity);
         //console.log("Similarity Percentage:", (similarity + 1) / 2 * 100); // Convert range from [-1, 1] to [0, 100]
         let similarityScore = (similarity + 1) / 2 * 100 * confidenceSimilarity;
         //console.log("Finetune Cosine Similarity::", similarityScore);
         // 添加新的相似度分数到数组中
-        setSimilarityScores(prevScores => [...prevScores, similarityScore]);
+        setSimilarityScores(prevScores => [...prevScores, mapScore]);
         //console.log("start setSingleSimilarityScores")
-        setSingleSimilarityScores(prevScores => [...prevScores, similarityScore]);
+        setSingleSimilarityScores(prevScores => [...prevScores, mapScore]);
         //console.log("singleSimilarityScores length", singleSimilarityScores.length);
-        setSimilarityScore(similarityScore);
-        return similarityScore;
+        setSimilarityScore(mapScore);
+        return mapScore;
     }
 
     function mirrorKeypoints(keypoints, videoWidth) {
