@@ -25,6 +25,8 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
 import { DemoContainer, DemoItem } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -42,6 +44,7 @@ axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
 const fronEndserver = 'https://wellbeing.htcangelfund.com/';
+dayjs.extend(utc);
 
 const Theme = createTheme({
   palette: {
@@ -62,6 +65,7 @@ class ResponseInfo {
 function MakeSchedule(){
     const location = useLocation();
     const [exerciseID, setExerciseID] = React.useState(null);
+    const [scheduleID, setScheduleID] = React.useState(null);
     //console.log(exerciseID)
     const today = new Date();
     const [topage, setTopage] = React.useState("");
@@ -103,28 +107,36 @@ function MakeSchedule(){
         const sub_schedules = [];
         const token = cookie.load("token")
         let data = new FormData();
-        console.log("exercise_link ",exercise_link)
+        let tmpExercise_link=fronEndserver+"Working_Yoga?exercise="+exerciseID;
+        console.log(tmpExercise_link);
+        console.log("exercise_link ",tmpExercise_link);
         data.append("name",exercise_info.name)
-        data.append("exercises[]", `https://wellbeing.htcangelfund.com/api/exercise/exercises/${exerciseID}/`)
+        data.append("exercises[]", `https://wellbeing.htcangelfund.com/api/exercise/exercises/${exerciseID}/`);
+
+        data.append("location", `https://wellbeing.htcangelfund.com/Working_Yoga?exercise=${exerciseID}`);
         data.append("start_time", newArray[0])
         data.append("end_time",  newArray[newArray.length-1])
         for(let i = 0; i < newArray.length; i++){
             const startTimeString = newArray[i];
             console.log("startTimeString",startTimeString);
-            const tmpstartTime = new Date(startTimeString);
-            const startTime = new Date(startTimeString);
+             // 使用 dayjs 来处理日期时间
+            const startTime = dayjs(startTimeString);
+            const formattedEndTime = startTime.add(10, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
             console.log("startTime",startTime);
-            tmpstartTime.setMinutes(tmpstartTime.getMinutes() + 10);
-            console.log("New startTime",tmpstartTime);
+            console.log("New startTime",formattedEndTime);
             // 格式化为'%Y-%m-%dT%H:%M:%S.%fZ'的字符串
-            const formattedEndTime = tmpstartTime;
-            console.log(formattedEndTime);
+
             sub_schedules[i] = {
-                "start_time": startTime,
+                "start_time": startTime.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
                 "end_time": formattedEndTime
             }
         }
         data.append("sub_schedules",  JSON.stringify(sub_schedules))
+        // Log FormData entries
+        console.log('FormData entries:');
+        for (let pair of data.entries()) {
+            console.log(pair[0]+ ', ' + pair[1]);
+        }
         axios.post(server+"exercise/schedules/", data, {headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
             console.log(response)
             alert("The Schedule Mails have been sent! Please check the coming mails!")
@@ -172,16 +184,29 @@ function MakeSchedule(){
         }
       }, []);
 
-    useEffect(()=>{
+    useEffect(() => {
         if(date_config.from_date !== null){
-            setTo_date(dayjs(date_config.from_date).add(date_config.range-1, 'day'));
-            setDate_list(date_Func(new Date(date_config.from_date), new Date(dayjs(date_config.from_date).add(date_config.range-1, 'day'))))
-            console.log(date_list)
-        }else{
+            // 用dayjs将开始日期转换为用户的本地时区
+            const localFromDate = dayjs.utc(date_config.from_date).local();
+
+            // 计算结束日期
+            const localToDate = localFromDate.add(date_config.range-1, 'day');
+
+            // 设置本地时区的结束日期
+            setTo_date(localToDate);
+
+            // 这里假设date_Func函数接收dayjs对象作为参数并正确处理它们。
+            // 如果它期望JavaScript Date对象，你可能需要使用.toDate()方法，
+            // 例如：date_Func(localFromDate.toDate(), localToDate.toDate())
+            setDate_list(date_Func(localFromDate, localToDate))
+
+            console.log("date_list",date_list);
+        } else {
             setTo_date(null);
             setDate_list([])
         }
-    }, [date_config.range,date_config.from_date]);
+    }, [date_config.range, date_config.from_date]);
+
 
     useEffect(()=>{
         if(!cookie.load('user_id')){
@@ -189,9 +214,6 @@ function MakeSchedule(){
             setTopage("SignIn")
         }else{
             const token = cookie.load("token")
-            let tmpExercise_link=fronEndserver+"Working_Yoga?exercise="+exerciseID+"&token="+token
-            setExercise_link(tmpExercise_link)
-            console.log(tmpExercise_link)
             setUserToken(token);
         }
     },[]);
