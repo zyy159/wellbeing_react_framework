@@ -50,6 +50,7 @@ function Home() {
     const [badgeData, setBadgeData] = React.useState(null);
     const [userProfile, setUserProfile] = React.useState(null);
     const [userRanking, setUserRanking] = React.useState([]);
+    const [userLikees, setuserLikees] = React.useState([]);
     const [userScore, setUserScore] = React.useState([]);
     const [userCalorie, setUserCalorie] = React.useState([]);
     const [userTime, setUserTime] = React.useState([]);
@@ -283,7 +284,22 @@ function Home() {
                     }
                 });
             //console.log("fetchUserRanking",response.data);
-            setUserRanking(response.data);
+            if (response.data && Array.isArray(response.data)) {
+                // 假设您有一个名为likers的数组，其中包含当前用户点赞过的用户的ID。
+                // 如果不存在这样的数组，请根据您的数据结构调整这部分代码。
+
+
+                // 更新每个用户的hasLiked状态
+                const updatedUserRanking = response.data.map(user => ({
+                    ...user,
+                    // 如果当前用户点赞过此用户，则将hasLiked设置为true
+                    hasLiked: userLikees.includes(user.pk)
+                }));
+                //console.log("updatedUserRanking",updatedUserRanking);
+                //console.log("userLikees",userLikees);
+                setUserRanking(updatedUserRanking);
+            }
+            //setUserRanking(response.data);
         } catch (error) {
             console.error("Failed to fetch user ranking:", error);
         }
@@ -297,8 +313,22 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            //console.log("fetchUserScore",response.data);
-            setUserScore(response.data);
+            if (response.data && Array.isArray(response.data)) {
+                // 假设您有一个名为likers的数组，其中包含当前用户点赞过的用户的ID。
+                // 如果不存在这样的数组，请根据您的数据结构调整这部分代码。
+
+
+                // 更新每个用户的hasLiked状态
+                const updatedUserScore = response.data.map(user => ({
+                    ...user,
+                    // 如果当前用户点赞过此用户，则将hasLiked设置为true
+                    hasLiked: userLikees.includes(user.pk)
+                }));
+                //console.log("updatedUserRanking",updatedUserRanking);
+                //console.log("userLikees",userLikees);
+                setUserScore(updatedUserScore);
+            }
+
         } catch (error) {
             console.error("Failed to fetch user score:", error);
         }
@@ -312,8 +342,22 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            //console.log("fetchUserScore",response.data);
-            setUserTime(response.data);
+            if (response.data && Array.isArray(response.data)) {
+                // 假设您有一个名为likers的数组，其中包含当前用户点赞过的用户的ID。
+                // 如果不存在这样的数组，请根据您的数据结构调整这部分代码。
+
+
+                // 更新每个用户的hasLiked状态
+                const updatedUserTime = response.data.map(user => ({
+                    ...user,
+                    // 如果当前用户点赞过此用户，则将hasLiked设置为true
+                    hasLiked: userLikees.includes(user.pk)
+                }));
+                //console.log("updatedUserRanking",updatedUserRanking);
+                //console.log("userLikees",userLikees);
+                setUserTime(updatedUserTime);
+            }
+
         } catch (error) {
             console.error("Failed to fetch user score:", error);
         }
@@ -327,22 +371,35 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            //console.log("setUserCalorie",response.data);
-            setUserCalorie(response.data);
+            if (response.data && Array.isArray(response.data)) {
+                // 假设您有一个名为likers的数组，其中包含当前用户点赞过的用户的ID。
+                // 如果不存在这样的数组，请根据您的数据结构调整这部分代码。
+
+
+                // 更新每个用户的hasLiked状态
+                const updatedUserCalorie = response.data.map(user => ({
+                    ...user,
+                    // 如果当前用户点赞过此用户，则将hasLiked设置为true
+                    hasLiked: userLikees.includes(user.pk)
+                }));
+                //console.log("updatedUserRanking",updatedUserRanking);
+                //console.log("userLikees",userLikees);
+                setUserCalorie(updatedUserCalorie);
+            }
+
         } catch (error) {
             console.error("Failed to fetch user score:", error);
         }
     };
-
     useEffect(() => {
-        if(userToken){
-            console.log("userToken",userToken);
-            fetchUserRanking();
-            fetchUserScore();
-            fetchUserTime();
-            fetchUserCalorie();
-        }
-    }, [userToken]);
+            if(userToken && userLikees){
+                console.log("userToken",userToken);
+                fetchUserRanking();
+                fetchUserScore();
+                fetchUserTime();
+                fetchUserCalorie();
+            }
+    }, [userToken,userLikees]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -499,7 +556,7 @@ function Home() {
             try {
                 // 获取用户个人信息
                 const token = cookie.load("token");
-                console.log("Start to get user profile token",userToken)
+                console.log("Start to get user profile token",userToken,token);
                 const userProfileResponse = await axios.get(server + "exercise/userprofile/", {
                     headers: {
                         "Content-Type": 'application/json',
@@ -510,11 +567,13 @@ function Home() {
                 console.log("Server response: ", userProfileResponse.data);
 
                 if (userProfileResponse.status === 200) {
-                    console.log("userProfileResponse.data",userProfileResponse.data);
+                    //console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
-                    console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
+                    //console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
                     setlikes_received(userProfileResponse.data.likes_received);
                     setInvitationCode(userProfileResponse.data.invite_code);
+                    //console.log("userProfileResponse.data.userLikees",userProfileResponse.data.likees);
+                    setuserLikees(userProfileResponse.data.likees);
                 } else {
                     console.log("Failed to fetch user profile");
                 }
@@ -579,10 +638,10 @@ function Home() {
                                           xs="auto" sx={{mb: 1}}>
                                         {invitationCode ? (
                                                 <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
-                                                    Your Invite Code:
-                                                    <span sx={{color: 'red', fontWeight: 'bold'}}>
+                                                    Your Invite Code: 
+                                                    <Box component="span" sx={{color: 'red', fontWeight: 'bold'}}>
                                                         {invitationCode}
-                                                    </span>
+                                                    </Box>
                                                 </Typography>
                                             ) : (
                                                 <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
