@@ -99,6 +99,20 @@ function SignUp() {
         axios.post(server+"rest-auth/registration/",JSON.stringify(data),{headers:{"Content-Type":'application/json'}}).then(function (response) {
             cookie.save("user_id",values.username, { maxAge: 60*60*24*365 });
             cookie.save("token",response.data.key, { maxAge: 60*60*24*365 });
+            // 如果注册成功，并且我们有一个有效的邀请码，提交邀请API的请求
+            console.log("inviteRespond",inviteCode,response);
+            if (response.status === 201 && inviteCode) {
+                console.log("inviteRespond",response);
+                const token = cookie.load("token");
+                axios.post('https://wellbeing.htcangelfund.com/api/exercise/invite/', {
+                    code: inviteCode
+                }, {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + token
+                    }
+                });
+            }
             history.push({pathname:"/",state:{}});
             setTopage("Home");
         }).catch(err => {
@@ -154,6 +168,7 @@ function SignUp() {
 
             if (response.status === 200) { // 如果状态码是200，邀请码有效
                 setInviteCodeStatus("valid");
+
             } else { // 如果状态码不是200，邀请码无效
                 setInviteCodeStatus("invalid");
             }
