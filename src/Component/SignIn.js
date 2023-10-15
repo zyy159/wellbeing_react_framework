@@ -54,12 +54,14 @@ function SignIn() {
     }
     const clearSiteCookies = () => {
         // 获取当前网站所有的 cookie
-        const allCookies = cookie.loadAll();
-
+        const allCookies = cookie.load();  // 获取所有的cookie
+        //console.log("Before clearing, allCookies:", allCookies);
         // 清除所有获取到的 cookie
-        for (const [key] of Object.entries(allCookies)) {
+        // 清除所有获取到的cookie
+        for (const key in allCookies) {
             cookie.remove(key);
         }
+        //console.log("After clearing, allCookies:", cookie.load());
     }
 
     const SignIn_Button = () => {
