@@ -108,8 +108,8 @@ function MakeSchedule(){
         const token = cookie.load("token")
         let data = new FormData();
         let tmpExercise_link=fronEndserver+"Working_Yoga?exercise="+exerciseID;
-        console.log(tmpExercise_link);
-        console.log("exercise_link ",tmpExercise_link);
+        //console.log(tmpExercise_link);
+        //console.log("exercise_link ",tmpExercise_link);
         data.append("name",exercise_info.name)
         data.append("exercises[]", `https://wellbeing.htcangelfund.com/api/exercise/exercises/${exerciseID}/`);
 
@@ -118,12 +118,12 @@ function MakeSchedule(){
         data.append("end_time",  newArray[newArray.length-1])
         for(let i = 0; i < newArray.length; i++){
             const startTimeString = newArray[i];
-            console.log("startTimeString",startTimeString);
+        //    console.log("startTimeString",startTimeString);
              // 使用 dayjs 来处理日期时间
             const startTime = dayjs(startTimeString);
             const formattedEndTime = startTime.add(10, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
-            console.log("startTime",startTime);
-            console.log("New startTime",formattedEndTime);
+        //    console.log("startTime",startTime);
+        //    console.log("New startTime",formattedEndTime);
             // 格式化为'%Y-%m-%dT%H:%M:%S.%fZ'的字符串
 
             sub_schedules[i] = {
@@ -133,16 +133,16 @@ function MakeSchedule(){
         }
         data.append("sub_schedules",  JSON.stringify(sub_schedules))
         // Log FormData entries
-        console.log('FormData entries:');
-        for (let pair of data.entries()) {
-            console.log(pair[0]+ ', ' + pair[1]);
-        }
+        //console.log('FormData entries:');
+        //for (let pair of data.entries()) {
+        //    console.log(pair[0]+ ', ' + pair[1]);
+        //}
         axios.post(server+"exercise/schedules/", data, {headers:{"Content-Type":'application/json',"Authorization": "Token "+token}}).then(function (response) {
-            console.log(response)
+            //console.log(response)
             alert("The Schedule Mails have been sent! Please check the coming mails!")
             setTopage("Home")
         }).catch(err => {
-            console.log(err)
+            //console.log(err)
             alert("Fail to send the schedule mails! Please retry!");
         })
     }
@@ -156,7 +156,7 @@ function MakeSchedule(){
                         "Authorization": "Token " + userToken
                             }
                     });
-                    console.log("exerciseResponse",exerciseResponse);
+                    //console.log("exerciseResponse",exerciseResponse);
                     setExercise_info(exerciseResponse.data);
                     } catch (error) {
                 console.error("Error fetching user profile: ", error);
@@ -177,7 +177,7 @@ function MakeSchedule(){
         const params = new URLSearchParams(location.search);
         const exerciseParam = params.get('exercise');
         if (exerciseParam) {
-          console.log("exerciseID:", exerciseParam);
+          //console.log("exerciseID:", exerciseParam);
           setExerciseID(exerciseParam);
         } else {
           console.error("exerciseID 不存在");
@@ -200,7 +200,7 @@ function MakeSchedule(){
             // 例如：date_Func(localFromDate.toDate(), localToDate.toDate())
             setDate_list(date_Func(localFromDate, localToDate))
 
-            console.log("date_list",date_list);
+           // console.log("date_list",date_list);
         } else {
             setTo_date(null);
             setDate_list([])
