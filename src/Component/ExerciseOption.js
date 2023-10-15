@@ -47,7 +47,7 @@ function ExerciseOption() {
                 for(let i = 0; i < exercise_num; i++){
                     const exercise = exercise_list[i];
                     const exercise_json = JSON.parse(JSON.stringify(exercise));
-                    console.log(exercise_json)
+                    //console.log(exercise_json)
                     if(exercise['category'] === "yoga"){
                         let j = yoga_exercises_Array.length
                         yoga_exercises_Array[j] = exercise_json;
@@ -56,7 +56,7 @@ function ExerciseOption() {
                         popular_exercises_Array[j] = exercise_json;
                     }
                 }
-                console.log(popular_exercises_Array)
+                //console.log(popular_exercises_Array)
                 setYoga_exercises(yoga_exercises_Array)
                 setPopular_exercises(popular_exercises_Array)
                 setPopular_showlist(popular_exercises_Array.slice(0,5))
@@ -161,7 +161,7 @@ function ExerciseOption() {
     }else if(topage==="MakeSchedule"){
         return <Navigate to={path} replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 }
 
