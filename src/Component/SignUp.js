@@ -42,6 +42,8 @@ function SignUp() {
     const [checked, setChecked] = React.useState(false);
     const [topage, setTopage] = React.useState("");
     const [verified, setVerified] = React.useState(false);
+    const [inviteCode, setInviteCode] = React.useState(""); // 邀请码
+    const [inviteCodeStatus, setInviteCodeStatus] = React.useState(null); // 邀请码状态
 
     const handleChange = (prop) => (event) =>{
         setValues({ ...values, [prop]: event.target.value });
@@ -141,6 +143,26 @@ function SignUp() {
 //            handleRefresh();
 //        });
     }
+    //Verify the invitecode
+    const verifyInviteCode = async () => {
+        try {
+            // 在这里调用您的API来验证邀请码
+            const response = await axios.get(server + "exercise/profile/" + inviteCode + "/");
+
+            console.log("verifyInviteCode",response);
+            // 根据响应设置邀请码状态
+
+            if (response.status === 200) { // 如果状态码是200，邀请码有效
+                setInviteCodeStatus("valid");
+            } else { // 如果状态码不是200，邀请码无效
+                setInviteCodeStatus("invalid");
+            }
+        } catch (error) {
+            console.error("Error verifying invite code: ", error);
+            setInviteCodeStatus("invalid");
+        }
+    };
+
     useEffect(()=>{
         if(cookie.load('user_id')){
             history.push({pathname:"/",state:{}});
@@ -183,10 +205,21 @@ function SignUp() {
                                          ),
                                      }}
                                 />
-                                <TextField label="Invite Code (optional)" className="Text_InviteCode"
-                                    sx={{ width: "73ch", m: 2, fontFamily: 'MSYH' }} variant={"outlined"} color="error"
-                                    helperText="If you have an invite code, please enter it here."
-                                    onChange={handleChange('inviteCode')}
+                                <TextField
+                                    label="Invite Code (optional)"
+                                    className="Text_InviteCode"
+                                    value={inviteCode}
+                                    onChange={(e) => setInviteCode(e.target.value)}
+                                    onBlur={verifyInviteCode} // 当焦点移出输入框时验证邀请码
+                                    sx={{ width: "73ch", m: 2, fontFamily: 'MSYH' }}
+                                    variant={"outlined"}
+                                    color="error"
+                                    helperText={
+                                        inviteCodeStatus === "invalid"
+                                        ? "The invite code is invalid."
+                                        : "If you have an invite code, please enter it here."
+                                    }
+                                    error={inviteCodeStatus === "invalid"} // 如果邀请码无效，则显示错误样式
                                 />
                                 <TextField label="Password" className="Text_Password"
                                      sx = {{ width:"73ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" type="password" required
