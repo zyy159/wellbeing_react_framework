@@ -87,8 +87,11 @@ function Working_Yoga(){
     const [isPoseEstimated, setIsPoseEstimated] = React.useState(false);
 
     const stop = () => {
-        setShowIndex(0)
-        clearInterval(timer);
+        setShowIndex(0); // 重置轮播到第一张图片
+        clearInterval(timer); // 如果有一个名为 `timer` 的定时器，请确保清理它
+        setShouldStart(false); // 确保轮播不会自动开始
+        setIsPaused(true); // 将轮播设置为暂停状态
+        setStartComparison(false); // 确保不进行视频动作识别
     }
     const pause = () => {
         setIsPaused(true);
@@ -208,7 +211,12 @@ function Working_Yoga(){
             //console.log("modelStores",modelStores)
             if (modelStores.length > 0) {
                 const fetchedModels = await Promise.all(modelStores.map(async (storeUrl) => {
-                    const response = await axios.get(storeUrl);
+                    const response = await axios.get(storeUrl,{
+                        headers: {
+                            "Content-Type": 'application/json',
+                            "Authorization": "Token " + token
+                                }
+                    });
                     return {
                         label: response.data.name,
                         imgPath: response.data.model_url,
