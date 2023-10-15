@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect,useRef } from "react";
+import { Link as RouterLink } from 'react-router-dom';
 import history from "../Tool/history";
 // import logo from '../Picture/HSBC-LOGO.png';
 import background_pic from '../Picture/Signup Background.png';
@@ -56,15 +57,11 @@ function SignUp() {
         setChecked(event.target.checked);
     };
     const SignUp_Button = () => {
-        if (values.email_security_code === "" || values.password === "" || values.password_verfy === "" || values.verification_code === "") {
+        if (values.password === "" || values.password_verfy === "" || values.verification_code === "") {
             alert("Please input the required textfield.");
             handleRefresh();
         } else if (checked === false) {
             alert("Please read and agree to Wellbeing Gallery Privacy and Security Policy and Terms of Use.");
-            handleRefresh();
-        } else if (values.email_security_code !== cookie.load('security_code')) {
-            alert("The Email Security Code is incorrect!");
-            setVerified(false)
             handleRefresh();
         } else if (/^.*(?=.{8,16})(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*? ]).*$/.test(values.password) === false) {
             if(values.password.length < 8){
@@ -127,21 +124,22 @@ function SignUp() {
             alert("Please input the correct Email.");
             handleRefresh();
         }
-        var code = '' + (parseInt(Math.random()*1000000)+1000000);
-        code = code.substring(1, 7);
-        cookie.save("security_code",code);
-        emailjs.send("service_89efw7f","template_qu1hm1r", {
-            to_name: values.username,
-            to_email: values.email,
-            code: code,
-        },"NwUcEIZUuGjkuoiEf").then((result) => {
-            console.log('SUCCESS!', result.text);
-        }, (error) => {
-            alert("The verification mail fail to be sent!")
-            setVerified(false)
-            console.log('FAILED...', error.text);
-            handleRefresh();
-        });
+// Comment the verification code.
+//        var code = '' + (parseInt(Math.random()*1000000)+1000000);
+//        code = code.substring(1, 7);
+//        cookie.save("security_code",code);
+//        emailjs.send("service_89efw7f","template_qu1hm1r", {
+//            to_name: values.username,
+//            to_email: values.email,
+//            code: code,
+//        },"NwUcEIZUuGjkuoiEf").then((result) => {
+//            console.log('SUCCESS!', result.text);
+//        }, (error) => {
+//            alert("The verification mail fail to be sent!")
+//            setVerified(false)
+//            console.log('FAILED...', error.text);
+//            handleRefresh();
+//        });
     }
     useEffect(()=>{
         if(cookie.load('user_id')){
@@ -185,26 +183,11 @@ function SignUp() {
                                          ),
                                      }}
                                 />
-                                <Grid container item justifyContent="center" alignItems="flex-start" direction="row" sx = {{ m:2 }}>
-                                    <TextField label="Email Security Code" className="Text_Email_Security_Code"
-                                         sx = {{ width:"48ch", fontFamily: 'MSYH' }} variant={"outlined"} color="error" required
-                                         helperText="Please check the coming mail in your mailbox and then fill in."
-                                         onChange={handleChange('email_security_code')}
-                                         InputProps={{
-                                             startAdornment: (
-                                                 <InputAdornment position="start" >
-                                                     <VerifiedUserIcon />
-                                                 </InputAdornment>
-                                             ),
-                                         }}
-                                    />
-                                    <Button className="Button_Verify_Email"
-                                        variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"18ch", ml:3, mt:0.5, fontFamily: 'MSYH'}}
-                                        onClick={SignUp_Verify_Email} disabled={verified}
-                                    >
-                                        Verify Email
-                                    </Button>
-                                </Grid>
+                                <TextField label="Invite Code (optional)" className="Text_InviteCode"
+                                    sx={{ width: "73ch", m: 2, fontFamily: 'MSYH' }} variant={"outlined"} color="error"
+                                    helperText="If you have an invite code, please enter it here."
+                                    onChange={handleChange('inviteCode')}
+                                />
                                 <TextField label="Password" className="Text_Password"
                                      sx = {{ width:"73ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" type="password" required
                                      helperText="The password should contain 8 - 16 characters, which is a combination of digit, uppercase letters and lowercase letters."
@@ -257,12 +240,25 @@ function SignUp() {
                             >
                                 Sign Up
                             </Button>
-                            <FormControlLabel control={
-                                <Checkbox color={'error'} onChange={handleCheck} checked={checked}
-                                    inputProps={{ 'aria-label': 'controlled' }}
-                                />
-                                } label="I have read and agreed to Wellbeing Gallery Privacy and Security Policy and Terms of Use."
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        color={'error'}
+                                        onChange={handleCheck}
+                                        checked={checked}
+                                        inputProps={{ 'aria-label': 'controlled' }}
+                                    />
+                                }
+                                label="I have read and agreed the statement below: "
                             />
+                            <Link
+                                component={RouterLink}
+                                to="/PrivacyPolicy"
+                                underline="hover"
+                                sx={{ color: 'inherit', display: 'inline-block', ml: 1 }}
+                            >
+                                Wellbeing Gallery Privacy and Security Policy and Terms of Use.
+                            </Link>
                             <Link component="button" underline="always" sx={{ fontFamily: 'MSYH' }}
                                 onClick={() => {
                                     history.push({pathname:"/SignIn",state:{}});
