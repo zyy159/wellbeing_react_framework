@@ -1,18 +1,16 @@
-export const date_Func=(startTime, endTime) =>{
-    var all_date_list = []
-    var i = 0
-    while ((endTime.getTime() - startTime.getTime()) >= 0) {
-        var year = startTime.getFullYear()
-        var month = startTime.getMonth() + 1
-        var day = startTime.getDate()
-        var hour = startTime.getHours()
-        var minute = startTime.getMinutes()
-        all_date_list[i] = year + '-' + month + '-' + day + ' ' + hour + ":" + minute + ":00"
-        startTime.setDate(startTime.getDate() + 1)
-        i += 1
+export const date_Func = (startTime, endTime) => {
+    let all_date_list = [];
+    let currentDate = startTime;
+
+    // 使用 dayjs 的 diff 函数来计算时间差并遍历每一天
+    while (endTime.diff(currentDate, 'minute') >= 0) {
+        all_date_list.push(currentDate.format('YYYY-MM-DD HH:mm:ss'));
+        currentDate = currentDate.add(1, 'day');
     }
-    return all_date_list
+
+    return all_date_list;
 };
+
 
 export const getDateIndex=(startTime, editTime) =>{
     var year = startTime.getFullYear()
