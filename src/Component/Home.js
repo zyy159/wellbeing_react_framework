@@ -45,6 +45,7 @@ function Home() {
     const [total_score, setTotal_score] = React.useState(0);
     const [total_likes, setTotal_likes] = React.useState(0);
     const [likes_received, setlikes_received] = React.useState(0);
+    const [invitationCode, setInvitationCode] = React.useState(null);
     const [upcomingPlans, setUpcomingPlans] = React.useState([]);
     const [badgeData, setBadgeData] = React.useState(null);
     const [userProfile, setUserProfile] = React.useState(null);
@@ -281,7 +282,7 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            console.log("fetchUserRanking",response.data);
+            //console.log("fetchUserRanking",response.data);
             setUserRanking(response.data);
         } catch (error) {
             console.error("Failed to fetch user ranking:", error);
@@ -296,7 +297,7 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            console.log("fetchUserScore",response.data);
+            //console.log("fetchUserScore",response.data);
             setUserScore(response.data);
         } catch (error) {
             console.error("Failed to fetch user score:", error);
@@ -311,7 +312,7 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            console.log("fetchUserScore",response.data);
+            //console.log("fetchUserScore",response.data);
             setUserTime(response.data);
         } catch (error) {
             console.error("Failed to fetch user score:", error);
@@ -326,7 +327,7 @@ function Home() {
                         "Authorization": "Token " + userToken
                     }
                 });
-            console.log("setUserCalorie",response.data);
+            //console.log("setUserCalorie",response.data);
             setUserCalorie(response.data);
         } catch (error) {
             console.error("Failed to fetch user score:", error);
@@ -361,14 +362,14 @@ function Home() {
                     });
 
                     if (summaryResponse.status === 200) {
-                        console.log("Total time from API:", summaryResponse.data["total_time"]);
-                        console.log("ummaryResponse.data:", summaryResponse.data);
+                        //console.log("Total time from API:", summaryResponse.data["total_time"]);
+                        //console.log("ummaryResponse.data:", summaryResponse.data);
 
                         cookie.save("email", summaryResponse.data["email"], { maxAge: 60 * 60 * 24 * 365 });
                         setWellbeing_level(summaryResponse.data["wellbeing_level"]);
                         setTotal_score(summaryResponse.data["total_score"]);
                         setTotal_time(summaryResponse.data["total_time"]);
-                        console.log("wellbeing_level", wellbeing_level);
+                        //console.log("wellbeing_level", wellbeing_level);
                     } else {
                         console.log("Failed to fetch user summary");
                     }
@@ -381,9 +382,10 @@ function Home() {
                     });
 
                     const allPlans = schedulesResponse.data.results;  // 注意这里从 response.data 中取出了 results 字段
-                    console.log("allPlans",allPlans);
-                    console.log("cookie.load('user_id'",cookie.load('user_id'));
-                    const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
+                    //console.log("allPlans",allPlans);
+                    //console.log("cookie.load('user_id'",cookie.load('user_id'));
+                    //const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
+                    const ownerPlans = allPlans;
                     console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
@@ -393,7 +395,7 @@ function Home() {
                                     "Authorization": "Token " + token
                                 }
                             });
-                            console.log("exercise/schedules/", response.data);
+                            //console.log("exercise/schedules/", response.data);
                             return response.data;
                         } catch (error) {
                             console.error("Failed to fetch exercise details:", error);
@@ -408,14 +410,14 @@ function Home() {
 
                                 // Parse sub_schedules to JSON
                                 const subSchedulesParsed = JSON.parse(plan.sub_schedules);
-                                console.log("subSchedulesParsed",subSchedulesParsed);
+                                //console.log("subSchedulesParsed",subSchedulesParsed);
                                 // Check if there is at least one future sub_schedule
                                 const now = new Date();
                                 const hasFutureSubSchedule = subSchedulesParsed.some(sub_schedule =>
                                     new Date(sub_schedule.start_time) > now
                                 );
                                 // If there are no future sub_schedules, skip this plan
-                                console.log("hasFutureSubSchedule",hasFutureSubSchedule)
+                                //console.log("hasFutureSubSchedule",hasFutureSubSchedule)
                                 if (!hasFutureSubSchedule) {
                                     return null;
                                 }
@@ -440,11 +442,11 @@ function Home() {
                                 });
 
                                 // Construct the GO button URL
-                                console.log("plan.exercises",plan)
-                                console.log("plan.exercises[0]",plan.exercises[0])
+                                //console.log("plan.exercises",plan)
+                                //console.log("plan.exercises[0]",plan.exercises[0])
                                 const exerciseId = plan.exercises[0].replace(/\/$/, '').split('/').pop();
                                 const scheduleID = plan.id
-                                console.log("exerciseId",exerciseId);
+                                //console.log("exerciseId",exerciseId);
                                 //setExerciseId(exerciseId);  // Set the exerciseId state
                                 const hostname = window.location.hostname;
                                 const protocol = window.location.protocol;
@@ -458,7 +460,7 @@ function Home() {
                                 }
                                 const goButtonUrl =
                                 `${baseUrl}/Working_Yoga?exercise=${exerciseId}&schedule=${scheduleID}`;
-                                console.log("goButtonUrl",goButtonUrl)
+                                //console.log("goButtonUrl",goButtonUrl)
 
 
                                 return {
@@ -496,18 +498,23 @@ function Home() {
         const fetchData = async () => {
             try {
                 // 获取用户个人信息
+                const token = cookie.load("token");
+                console.log("Start to get user profile token",userToken)
                 const userProfileResponse = await axios.get(server + "exercise/userprofile/", {
                     headers: {
                         "Content-Type": 'application/json',
                         "Authorization": "Token " + userToken
                     }
                 });
+                // 输出服务器响应以进一步调试
+                console.log("Server response: ", userProfileResponse.data);
 
                 if (userProfileResponse.status === 200) {
                     console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
                     console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
                     setlikes_received(userProfileResponse.data.likes_received);
+                    setInvitationCode(userProfileResponse.data.invite_code);
                 } else {
                     console.log("Failed to fetch user profile");
                 }
@@ -516,7 +523,7 @@ function Home() {
             }
         };
         if(userToken){
-            console.log("user profile token",userToken)
+            console.log("user profile token",userToken);
             fetchData();
         }
 
@@ -567,6 +574,21 @@ function Home() {
                                         <Typography variant="h5" sx={{ml: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
                                             Hi {cookie.load('user_id')}! Get started now?
                                         </Typography>
+                                    </Grid>
+                                    <Grid container item direction="row" justifyContent="center" alignItems="center"
+                                          xs="auto" sx={{mb: 1}}>
+                                        {invitationCode ? (
+                                                <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
+                                                    Your Invite Code:
+                                                    <span sx={{color: 'red', fontWeight: 'bold'}}>
+                                                        {invitationCode}
+                                                    </span>
+                                                </Typography>
+                                            ) : (
+                                                <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
+                                                    Your Invite Code is loading...
+                                                </Typography>
+                                            )}
                                     </Grid>
                                     <Grid container item direction="row" justifyContent="space-between" alignItems="center" sx={{mt: 1}}>
                                         <Grid container item direction="column" justifyContent="center"
