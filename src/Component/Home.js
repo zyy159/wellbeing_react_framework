@@ -638,7 +638,7 @@ function Home() {
                                           xs="auto" sx={{mb: 1}}>
                                         {invitationCode ? (
                                                 <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
-                                                    Your Invite Code: 
+                                                    Your Invite Code:
                                                     <Box component="span" sx={{color: 'red', fontWeight: 'bold'}}>
                                                         {invitationCode}
                                                     </Box>
