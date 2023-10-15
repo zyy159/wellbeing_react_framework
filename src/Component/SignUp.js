@@ -308,7 +308,7 @@ function SignUp() {
     }else if(topage==="SignIn"){
         return <Navigate to="/SignIn" replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 }
 
