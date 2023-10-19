@@ -61,16 +61,6 @@ function Home() {
 
     //const [hasLiked, setHasLiked] = React.useState(false);
 
-    const convertToMMDDHHMM = (isoString) => {
-        const date = new Date(isoString);
-        const optionsDate = { month: '2-digit', day: '2-digit' };
-        const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: false };
-
-        const localDate = date.toLocaleDateString('en-US', optionsDate).replace(/\//g, '-');
-        const localTime = date.toLocaleTimeString('en-US', optionsTime).replace(/:/g, ':');
-
-        return `${localDate} ${localTime}`;
-    };
 
     function timeStringToSeconds(timeString) {
         // Extract days, hours, minutes, and seconds from the string
@@ -480,14 +470,14 @@ function Home() {
                                 }
 
                                 const convertToMMDDHHMM = (isoString) => {
-                                  const date = new Date(isoString);
-                                  const optionsDate = { month: '2-digit', day: '2-digit' };
-                                  const optionsTime = { hour: '2-digit', minute: '2-digit', hour12: false };
+                                    console.log("isoString",isoString);
+                                    const date = new Date(isoString);
+                                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                                    const day = String(date.getUTCDate()).padStart(2, '0');
+                                    const hour = String(date.getUTCHours()).padStart(2, '0');
+                                    const minute = String(date.getUTCMinutes()).padStart(2, '0');
 
-                                  const localDate = date.toLocaleDateString('en-US', optionsDate).replace(/\//g, '-');
-                                  const localTime = date.toLocaleTimeString('en-US', optionsTime).replace(/:/g, ':');
-
-                                  return `${localDate} ${localTime}`;
+                                    return `${month}-${day} ${hour}:${minute}`;
                                 };
                                  // Update each sub_schedule
                                 const updatedSubSchedules = subSchedulesParsed.map(subSchedule => {
