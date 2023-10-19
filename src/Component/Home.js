@@ -444,10 +444,12 @@ function Home() {
                     }
                 });
                 const actions = response.data.results;
-                console.log("actions",actions);
-                const labels = actions.map(action => new Date(action.start_time).toLocaleDateString());
-                const caloriesData = actions.map(action => action.calories);
-                const scoreData = actions.map(action => action.score);
+                const currentOwnerId = cookie.load('user_id');
+                const filteredActions = actions.filter(action => action.owner === currentOwnerId);
+                console.log("actions",filteredActions);
+                const labels = filteredActions.map(action => new Date(action.start_time).toLocaleDateString());
+                const caloriesData = filteredActions.map(action => action.calories);
+                const scoreData = filteredActions.map(action => action.score);
                 console.log("actionsHistory",labels,scoreData,caloriesData);
                 setChartData({
                     labels: labels,
