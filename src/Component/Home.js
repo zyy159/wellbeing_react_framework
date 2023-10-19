@@ -29,12 +29,21 @@ import Box from '@mui/material/Box';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Snackbar from '@mui/material/Snackbar';
 import moment from 'moment';
+import { Line } from 'react-chartjs-2';
+import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
 
 import cookie from 'react-cookies';
 import axios from 'axios';
+import Tooltip from '@mui/material/Tooltip';
+import MembershipRule from './MembershipRule'; // 根据您的文件结构更新路径
+
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
+Chart.register(CategoryScale);
+Chart.register(LinearScale);
+Chart.register(PointElement);
+Chart.register(LineElement);
 
 function Home() {
     const [topage, setTopage] = React.useState("Home");
@@ -58,8 +67,42 @@ function Home() {
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = React.useState('');
     const [snackbarPosition, setSnackbarPosition] = React.useState({ vertical: 'bottom', horizontal: 'left' });
+    const [chartData, setChartData] = React.useState(null);
 
     //const [hasLiked, setHasLiked] = React.useState(false);
+    const options = {
+        responsive: true,  // 让图表响应式
+        maintainAspectRatio: false,  // 不保持宽高比
+        scales: {
+            'y-axis-1': {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Actions Score',
+                    color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
+                },
+                ticks: {
+                    color: 'rgb(75, 192, 192)'  // 与数据集同样的颜色
+                }
+            },
+            'y-axis-2': {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Calories Burned',
+                    color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
+                },
+                ticks: {
+                    color: 'rgb(255, 99, 132)'  // 与数据集同样的颜色
+                }
+            }
+        },
+    };
+
 
 
     function timeStringToSeconds(timeString) {
@@ -383,13 +426,58 @@ function Home() {
     };
     useEffect(() => {
             if(userToken && userLikees){
-                console.log("userToken",userToken);
+                //console.log("userToken",userToken);
                 fetchUserRanking();
                 fetchUserScore();
                 fetchUserTime();
                 fetchUserCalorie();
             }
     }, [userToken,userLikees]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(server +'exercise/actions/',{
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + userToken
+                    }
+                });
+                const actions = response.data.results;
+                console.log("actions",actions);
+                const labels = actions.map(action => new Date(action.start_time).toLocaleDateString());
+                const caloriesData = actions.map(action => action.calories);
+                const scoreData = actions.map(action => action.score);
+                console.log("actionsHistory",labels,scoreData,caloriesData);
+                setChartData({
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Calories',
+                            data: caloriesData,
+                            fill: false,
+                            backgroundColor: 'rgb(75, 192, 192)',
+                            borderColor: 'rgba(75, 192, 192, 0.2)',
+                            yAxisID: 'y-axis-1',
+                        },
+                        {
+                            label: 'Score',
+                            data: scoreData,
+                            fill: false,
+                            backgroundColor: 'rgb(255, 99, 132)',
+                            borderColor: 'rgba(255, 99, 132, 0.2)',
+                            yAxisID: 'y-axis-2',
+                        },
+                    ],
+                });
+            } catch (error) {
+                console.log("error",error);
+                console.error('Failed to fetch data from API:', error);
+            }
+        };
+
+        fetchData();
+    }, [userToken]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -433,7 +521,7 @@ function Home() {
                     //console.log("cookie.load('user_id'",cookie.load('user_id'));
                     //const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
                     const ownerPlans = allPlans;
-                    console.log("ownerPlans",ownerPlans);
+                    //  console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
                             const response = await axios.get(exerciseUrl,{
@@ -470,7 +558,7 @@ function Home() {
                                 }
 
                                 const convertToMMDDHHMM = (isoString) => {
-                                    console.log("isoString",isoString);
+                                    //console.log("isoString",isoString);
                                     const date = new Date(isoString);
                                     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
                                     const day = String(date.getUTCDate()).padStart(2, '0');
@@ -546,7 +634,7 @@ function Home() {
             try {
                 // 获取用户个人信息
                 const token = cookie.load("token");
-                console.log("Start to get user profile token",userToken,token);
+                //console.log("Start to get user profile token",userToken,token);
                 const userProfileResponse = await axios.get(server + "exercise/userprofile/", {
                     headers: {
                         "Content-Type": 'application/json',
@@ -554,7 +642,7 @@ function Home() {
                     }
                 });
                 // 输出服务器响应以进一步调试
-                console.log("Server response: ", userProfileResponse.data);
+                //console.log("Server response: ", userProfileResponse.data);
 
                 if (userProfileResponse.status === 200) {
                     //console.log("userProfileResponse.data",userProfileResponse.data);
@@ -572,7 +660,7 @@ function Home() {
             }
         };
         if(userToken){
-            console.log("user profile token",userToken);
+           // console.log("user profile token",userToken);
             fetchData();
         }
 
@@ -668,7 +756,7 @@ function Home() {
                                               alignItems="center" xs="auto" sx={{mr: 3}}
                                         >
                                             <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {formatScore(likes_received)}
+                                                {formatScore(likes_received + 1)}
                                             </Typography>
                                             <Box height={30}>
                                                 <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
@@ -682,14 +770,19 @@ function Home() {
                                             {/* 徽章信息展示位置 */}
                                             {
                                                 badgeData && (
-                                                    <>
-                                                        <img src={badgeData.image_url} alt={badgeData.name} style={{width: '40px', height: '40px'}}/>
-                                                        <Box height={40}>
-                                                            <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                                Wellbeing Level
-                                                            </Typography>
-                                                        </Box>
-                                                    </>
+                                                    <Tooltip
+                                                        title={<MembershipRule />}
+                                                        placement="bottom"
+                                                    >
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> {/* 这里添加 flexbox 样式 */}
+                                                            <img src={badgeData.image_url} alt={badgeData.name} style={{width: '40px', height: '40px'}}/>
+                                                            <Box height={40}>
+                                                                <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
+                                                                    Wellbeing Level
+                                                                </Typography>
+                                                            </Box>
+                                                        </div>
+                                                    </Tooltip>
                                                 )
                                             }
                                         </Grid>
@@ -756,7 +849,9 @@ function Home() {
                                 </Grid>
                             </Paper>
                             <Card sx={{ml: 4, width: 600, height: 500}}>
-                                <PicList/>
+                                {chartData && (
+                                    <Line data={chartData} options={options} />
+                                )}
                             </Card>
                         </Grid>
                         <Grid container item direction="row" alignItems="center" justifyContent="space-around"
