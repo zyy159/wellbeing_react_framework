@@ -14,6 +14,7 @@ const MakeSchedule = asyncComponent(() => import("./Component/MakeSchedule"));
 const ResetPassword = asyncComponent(() => import("./Component/ResetPassword"));
 const PromotionSignUp = asyncComponent(() => import("./Component/PromotionSignUp"));
 const PrivacyPolicy = asyncComponent(() => import("./Component/PrivacyPolicy"));
+const MembershipRule = asyncComponent(() => import("./Component/MembershipRule"));
 
 
 
@@ -25,6 +26,7 @@ class App extends React.Component{
                     <Route path="/SignUp" element={<SignUp/>} />
                     <Route path="/Promotionsignup" element={<PromotionSignUp/>} />
                     <Route path="/Privacypolicy" element={<PrivacyPolicy />} />
+                    <Route path="/MembershipRule" element={<MembershipRule />} />
                     <Route path="/SignIn" element={<SignIn/>} />
                     <Route path="/Yoga" element={<Yoga/>} />
                     <Route path="/ExerciseOption" element={<ExerciseOption/>} />
