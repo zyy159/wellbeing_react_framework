@@ -20,6 +20,8 @@ import EmailIcon from '@mui/icons-material/Email';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import Tooltip from '@mui/material/Tooltip';
+import PrivacyPolicy from './PrivacyPolicy'; // 根据您的文件结构更新路径
 
 import cookie from "react-cookies";
 // import md5 from 'js-md5';
@@ -116,17 +118,20 @@ function SignUp() {
             history.push({pathname:"/",state:{}});
             setTopage("Home");
         }).catch(err => {
+               console.log("err",err);
                if (err.response && err.response.data) {
                     const { username, email } = err.response.data;
                     let errorMsg = "";
                     if (username) errorMsg += `Username: ${username}\n`;
                     if (email) errorMsg += `Email: ${email}\n`;
+                    if(errorMsg=="") errorMsg+=err.response.data.non_field_errors;
 
                     // 在这里你可以设置一个状态来保存这个错误信息，
                     // 然后在你的组件中显示它。
                     alert(errorMsg);
             } else {
-                alert("Fail to register! Please retry!");
+
+                alert('Fail to register user!');
             }
             handleRefresh();
         })
@@ -299,14 +304,9 @@ function SignUp() {
                                 }
                                 label="I have read and agreed the statement below: "
                             />
-                            <Link
-                                component={RouterLink}
-                                to="/PrivacyPolicy"
-                                underline="hover"
-                                sx={{ color: 'inherit', display: 'inline-block', ml: 1 }}
-                            >
-                                Wellbeing Gallery Privacy and Security Policy and Terms of Use.
-                            </Link>
+                            <Tooltip title={<PrivacyPolicy />} placement="top" interactive>
+                                    Wellbeing Gallery Privacy and Security Policy and Terms of Use.
+                            </Tooltip>
                             <Link component="button" underline="always" sx={{ fontFamily: 'MSYH' }}
                                 onClick={() => {
                                     history.push({pathname:"/SignIn",state:{}});
