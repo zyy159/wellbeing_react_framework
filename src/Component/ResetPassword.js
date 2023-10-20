@@ -37,6 +37,8 @@ function ResetPassword() {
     });
     const [topage, setTopage] = React.useState("");
     const [verified, setVerified] = React.useState(false);
+    const [showSuccessMessage, setShowSuccessMessage] = React.useState(false);
+
 
     const handleChange = (prop) => (event) =>{
         setValues({ ...values, [prop]: event.target.value });
@@ -94,6 +96,7 @@ function ResetPassword() {
             code: code,
         },"NwUcEIZUuGjkuoiEf").then((result) => {
             console.log('SUCCESS!', result.text);
+            setShowSuccessMessage(true);
         }, (error) => {
             alert("The verification mail fail to be sent!")
             setVerified(false)
@@ -143,7 +146,7 @@ function ResetPassword() {
                                         variant="contained" color="error" sx={{ fontSize: "h6.fontSize",width:"18ch", ml:3, mt:0.5, fontFamily: 'MSYH'}}
                                         onClick={Reset_Verify_Email} disabled={verified}
                                     >
-                                        Verify Email
+                                        {showSuccessMessage ? 'Email Sent' : 'Verify Email'}
                                     </Button>
                                 </Grid>
                                 <TextField label="Reset your Password" className="Text_Password"
