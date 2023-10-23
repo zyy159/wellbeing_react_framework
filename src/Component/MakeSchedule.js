@@ -116,11 +116,13 @@ function MakeSchedule(){
         data.append("location", `https://wellbeing.htcangelfund.com/Working_Yoga?exercise=${exerciseID}`);
         data.append("start_time", newArray[0])
         data.append("end_time",  newArray[newArray.length-1])
+        console.log("newArray",newArray);
         for(let i = 0; i < newArray.length; i++){
             const startTimeString = newArray[i];
         //    console.log("startTimeString",startTimeString);
              // 使用 dayjs 来处理日期时间
-            const startTime = dayjs(startTimeString);
+//            const startTime = dayjs(startTimeString);
+            const startTime = dayjs.utc(startTimeString);
             const formattedEndTime = startTime.add(10, 'minutes').format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
         //    console.log("startTime",startTime);
         //    console.log("New startTime",formattedEndTime);
@@ -187,18 +189,25 @@ function MakeSchedule(){
     useEffect(() => {
         if(date_config.from_date !== null){
             // 用dayjs将开始日期转换为用户的本地时区
-            const localFromDate = dayjs.utc(date_config.from_date).local();
+            // 当您从日期选择器中获取日期时
+            const localFromDate = dayjs.utc(date_config.from_date);
 
-            // 计算结束日期
-            const localToDate = localFromDate.add(date_config.range-1, 'day');
+            // 在显示给用户看的时候，转换为本地时间
+            const displayFromDate = localFromDate.local().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
 
-            // 设置本地时区的结束日期
-            setTo_date(localToDate);
-
-            // 这里假设date_Func函数接收dayjs对象作为参数并正确处理它们。
-            // 如果它期望JavaScript Date对象，你可能需要使用.toDate()方法，
-            // 例如：date_Func(localFromDate.toDate(), localToDate.toDate())
-            setDate_list(date_Func(localFromDate, localToDate))
+            // 当您要生成日期列表时
+            let currentDay = localFromDate;
+            let finalDateList = [];
+            for (let i = 0; i < date_config.range; i++) {
+                // 如果当前日期不是周六(6)或周日(0)，则添加到列表中
+                while (currentDay.day() === 6 || currentDay.day() === 0) {
+                    currentDay = currentDay.add(1, 'day');
+                }
+                finalDateList.push(currentDay.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'));
+                currentDay = currentDay.add(1, 'day');
+            }
+            setDate_list(finalDateList);
+            //setDate_list(date_Func(localFromDate, localToDate))
 
            // console.log("date_list",date_list);
         } else {
@@ -370,7 +379,7 @@ function MakeSchedule(){
                                                             <Typography variant="h7"
                                                                         sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1, fontFamily: 'MSYH'}}
                                                                         color={"error"}>
-                                                                {date}
+                                                                {dayjs.utc(date).local().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')}
                                                             </Typography>
                                                         </ListItemText>
                                                         <ListItemSecondaryAction sx={{mr:4}}>
