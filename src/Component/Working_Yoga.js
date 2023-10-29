@@ -85,6 +85,8 @@ function Working_Yoga(){
     const difficulty = "Easy";
     const [isImageLoaded, setIsImageLoaded] = React.useState(false);
     const [isPoseEstimated, setIsPoseEstimated] = React.useState(false);
+    const [isPersonDetected, setIsPersonDetected] = React.useState(true); // 默认值设为true
+
 
     const stop = () => {
         setShowIndex(0); // 重置轮播到第一张图片
@@ -92,6 +94,11 @@ function Working_Yoga(){
         setShouldStart(false); // 确保轮播不会自动开始
         setIsPaused(true); // 将轮播设置为暂停状态
         setStartComparison(false); // 确保不进行视频动作识别
+        // 执行页面导航到主页 "Home"
+        // 显示提示信息
+        alert("You are about to leave the exercise page and return to the homepage.");
+        history.push({pathname:"/",state:{}});
+        setTopage("Home");
     }
     const pause = () => {
         setIsPaused(true);
@@ -305,12 +312,24 @@ function Working_Yoga(){
                   });
 
                 async function detectPose() {
+                    if (showCongratulations) {
+                      // 如果 showCongratulations 为真，停止捕捉和运行
+                      console.log("Exercise Completed!")
+                      return;
+                    }
                     const pose = await net.estimateSinglePose(video, {
                         maxDetections: 2,
                         scoreThreshold: 0.5,
                         nmsRadius: 30
                     });
                     setVideoPose(pose); // 设置视频姿态
+                    // 检查是否检测到人像
+                    const isDetected = pose.keypoints.some(keypoint => keypoint.score > 0.5);
+                    if(!isDetected){
+                        alert("Missing human presence, please ensure the camera is turned on or not obstructed");
+                    }
+                    // 更新状态
+                    setIsPersonDetected(isDetected);
                     const now = new Date();
                     const formattedTime = now.toISOString().slice(2, 10).replace(/-/g, '') + now.toTimeString().slice(0, 8).replace(/:/g, '');
                     // 这里我们假设 video.width 是视频的宽度
@@ -364,6 +383,8 @@ function Working_Yoga(){
                 setStartComparison(false)
                 setShowCongratulations(true);  // 设置为 true 以显示 "Congratulation
                 setShowStars(true);  // 设置为 true 以显示 Stars
+                // 在 showCongratulations 为真时执行的操作
+                alert("Congratulations on completing the training. You can click the home button to return to the homepage, or you can click Start again to do it one more time.");
             }
         };
     }, [showIndex, imgs, shouldStart, isPaused]);
@@ -892,9 +913,9 @@ function Working_Yoga(){
                                                 size="large"
                                                 sx={{fontWeight: 'bold', fontFamily: 'MSYH'}}
                                                 onClick={startPauseToggle}
-                                                disabled={!(isImageLoaded && isPoseEstimated)}
+                                                disabled={!(isImageLoaded && isPoseEstimated) }
                                             >
-                                                {showPaused ? "Pause":"Start"  }
+                                                {showCongratulations ? "Start" : (showPaused ? "Pause" : "Start")}
                                             </Button>
                                         </span>
                                     </Tooltip>
@@ -908,7 +929,7 @@ function Working_Yoga(){
                                                 size="large"
                                                 sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
                                                 onClick={stop}
-                                                disabled={!(isImageLoaded && isPoseEstimated)}
+                                                disabled={!(isImageLoaded && isPoseEstimated) }
                                             >
                                                 Stop
                                             </Button>
