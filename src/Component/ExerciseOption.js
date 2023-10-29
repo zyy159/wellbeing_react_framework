@@ -78,7 +78,7 @@ function ExerciseOption() {
                             Most Popular
                         </Typography>
                         {popular_showlist.map((popular_exercise) => (
-                            <Card sx={{width:1300, mt: 3 }}>
+                            <Card sx={{width:1500, mt: 3 }}>
                                 <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
                                     <img src={Mountain} alt={"Mountain"} width="200" />
                                     <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
@@ -92,7 +92,8 @@ function ExerciseOption() {
                                         </Typography>
                                     </Grid>
                                     <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
-                                        <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200, fontFamily: 'MSYH', ml:3 }}>
+                                        <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200,
+                                        fontFamily: 'MSYH', ml:3 }}>
                                             <LocalFireDepartmentIcon fontSize="large" color={"error"}/>
                                             {popular_exercise.calories}K
                                         </Typography>
@@ -100,19 +101,31 @@ function ExerciseOption() {
                                             CALORIES BURNT
                                         </Typography>
                                     </Grid>
-                                    <Button variant="contained" sx={{ ml: 2, mr: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH'}}
-                                        size="large" color="error"
-                                        onClick={() => {
-                                            const id = popular_exercise.id
-                                            // const name = popular_exercise.name.replaceAll(" ","_")
-                                            setPath("/MakeSchedule?exercise="+id)
-                                            history.push({pathname:path, state:{}});
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <Button variant="contained" sx={{ ml: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH' }}
+                                          size="large" color="error"
+                                          onClick={() => {
+                                            const id = popular_exercise.id;
+                                            setPath("/Working_Yoga?exercise=" + id);
+                                            history.push({ pathname: path, state: {} });
+                                            setTopage("Working_Yoga");
+                                          }}
+                                        >
+                                          GO NOW
+                                          <BoltIcon fontSize="large" />
+                                        </Button>
+                                        <Button variant="contained" sx={{ ml: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH' }}
+                                          size="large" color="primary"
+                                          onClick={() => {
+                                            const id = popular_exercise.id;
+                                            setPath("/MakeSchedule?exercise=" + id);
+                                            history.push({ pathname: path, state: {} });
                                             setTopage("MakeSchedule");
-                                        }}
-                                    >
-                                        Go
-                                        <BoltIcon fontSize="large" />
-                                    </Button>
+                                          }}
+                                        >
+                                          PLAN
+                                        </Button>
+                                      </div>
                                 </Grid>
                             </Card>
                         ))}
@@ -160,8 +173,10 @@ function ExerciseOption() {
         return <Navigate to="/SignIn" replace={true} />
     }else if(topage==="MakeSchedule"){
         return <Navigate to={path} replace={true} />
+    }else if(topage==="Working_Yoga"){
+        return <Navigate to={path} replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/" replace={true} />
+        return <Navigate to="/Home" replace={true} />
     }
 }
 
