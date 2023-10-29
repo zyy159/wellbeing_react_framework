@@ -176,7 +176,7 @@ function ExerciseOption() {
     }else if(topage==="Working_Yoga"){
         return <Navigate to={path} replace={true} />
     }else if(topage==="Home"){
-        return <Navigate to="/Home" replace={true} />
+        return <Navigate to="/" replace={true} />
     }
 }
 
