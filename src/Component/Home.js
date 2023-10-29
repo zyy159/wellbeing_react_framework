@@ -36,6 +36,8 @@ import cookie from 'react-cookies';
 import axios from 'axios';
 import Tooltip from '@mui/material/Tooltip';
 import MembershipRule from './MembershipRule'; // 根据您的文件结构更新路径
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
@@ -44,6 +46,7 @@ Chart.register(CategoryScale);
 Chart.register(LinearScale);
 Chart.register(PointElement);
 Chart.register(LineElement);
+dayjs.extend(utc);
 
 function Home() {
     const [topage, setTopage] = React.useState("Home");
@@ -68,6 +71,8 @@ function Home() {
     const [snackbarMessage, setSnackbarMessage] = React.useState('');
     const [snackbarPosition, setSnackbarPosition] = React.useState({ vertical: 'bottom', horizontal: 'left' });
     const [chartData, setChartData] = React.useState(null);
+    const [maxScore, setmaxScore] = React.useState(0);
+    const [maxCalories, setmaxCalories] = React.useState(0);
 
     //const [hasLiked, setHasLiked] = React.useState(false);
     const options = {
@@ -77,6 +82,7 @@ function Home() {
             'y-axis-1': {
                 type: 'linear',
                 position: 'left',
+                max: maxScore * 5,
                 beginAtZero: true,
                 title: {
                     display: true,
@@ -90,6 +96,7 @@ function Home() {
             'y-axis-2': {
                 type: 'linear',
                 position: 'right',
+                max: maxCalories * 5,
                 beginAtZero: true,
                 title: {
                     display: true,
@@ -103,28 +110,39 @@ function Home() {
         },
     };
 
-
-
     function timeStringToSeconds(timeString) {
-        // Extract days, hours, minutes, and seconds from the string
-        const dayMatch = timeString.match(/(\d+) days,/);
-        const timeMatch = timeString.match(/(\d{2}):(\d{2}):(\d{2})/);
+      console.log("timeString", timeString);
+      const dayMatch = timeString.match(/(\d+) days,/);
+      const timeMatch = timeString.match(/(\d{1,2}):(\d{2}):(\d{2})\.\d+/);
 
-        const days = dayMatch ? parseInt(dayMatch[1], 10) : 0;
-        const hours = timeMatch ? parseInt(timeMatch[1], 10) : 0;
-        const minutes = timeMatch ? parseInt(timeMatch[2], 10) : 0;
-        const seconds = timeMatch ? parseInt(timeMatch[3], 10) : 0;
+      if (!timeMatch && !dayMatch) {
+        console.log("Invalid timeMatch dayMatch format");
+        return 0;
+      }
 
-        // Convert everything to seconds
+      let days = 0;
+      if (dayMatch) {
+        days = parseInt(dayMatch[1], 10);
+      }
+
+      if (timeMatch) {
+        const hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        const seconds = parseInt(timeMatch[3], 10);
+
         return (days * 24 * 3600) + (hours * 3600) + (minutes * 60) + seconds;
+      }
+
+      return days * 24 * 3600;
     }
+
 
     function formatTime(seconds) {
         if (isNaN(seconds)) {
             console.error("formatTime was called with NaN");
             return "";
         }
-
+        console.log("formatTime(seconds)",seconds);
         const days = Math.floor(seconds / (3600*24));
         seconds  -= days*3600*24;
         const hrs   = Math.floor(seconds / 3600);
@@ -178,7 +196,7 @@ function Home() {
             // 更新点赞数和hasLiked状态
             const updatedRanking = userRanking.map(user =>
                 user.pk === likee
-                    ? {...user, likes_received: user.likes_received + 1, hasLiked: true}
+                    ? {...user, likes_received: user.likes_received, hasLiked: true}
                     : user
             );
             setUserRanking(updatedRanking);
@@ -451,6 +469,11 @@ function Home() {
                 const caloriesData = filteredActions.map(action => action.calories);
                 const scoreData = filteredActions.map(action => action.score);
                 console.log("actionsHistory",labels,scoreData,caloriesData);
+                const maxCalories = Math.max(...caloriesData);
+                setmaxCalories(maxCalories);
+                const maxScore = Math.max(...scoreData);
+                setmaxScore(maxScore);
+
                 setChartData({
                     labels: labels,
                     datasets: [
@@ -461,6 +484,7 @@ function Home() {
                             backgroundColor: 'rgb(75, 192, 192)',
                             borderColor: 'rgba(75, 192, 192, 0.2)',
                             yAxisID: 'y-axis-1',
+                            tension: 0.4  // 添加此属性以使线条更加平滑
                         },
                         {
                             label: 'Score',
@@ -469,6 +493,7 @@ function Home() {
                             backgroundColor: 'rgb(255, 99, 132)',
                             borderColor: 'rgba(255, 99, 132, 0.2)',
                             yAxisID: 'y-axis-2',
+                            tension: 0.4  // 添加此属性以使线条更加平滑
                         },
                     ],
                 });
@@ -505,6 +530,7 @@ function Home() {
                         cookie.save("email", summaryResponse.data["email"], { maxAge: 60 * 60 * 24 * 365 });
                         setWellbeing_level(summaryResponse.data["wellbeing_level"]);
                         setTotal_score(summaryResponse.data["total_score"]);
+                        console.log("total_time",total_time);
                         setTotal_time(summaryResponse.data["total_time"]);
                         //console.log("wellbeing_level", wellbeing_level);
                     } else {
@@ -523,7 +549,7 @@ function Home() {
                     //console.log("cookie.load('user_id'",cookie.load('user_id'));
                     //const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
                     const ownerPlans = allPlans;
-                    //  console.log("ownerPlans",ownerPlans);
+                    console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
                             const response = await axios.get(exerciseUrl,{
@@ -559,15 +585,18 @@ function Home() {
                                     return null;
                                 }
 
+
                                 const convertToMMDDHHMM = (isoString) => {
                                     //console.log("isoString",isoString);
-                                    const date = new Date(isoString);
-                                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                                    const day = String(date.getUTCDate()).padStart(2, '0');
-                                    const hour = String(date.getUTCHours()).padStart(2, '0');
-                                    const minute = String(date.getUTCMinutes()).padStart(2, '0');
-
-                                    return `${month}-${day} ${hour}:${minute}`;
+                                    const localDate = dayjs.utc(isoString).local();
+                                    return localDate.format('MM-DD HH:mm');
+//                                    const date = new Date(isoString);
+//                                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+//                                    const day = String(date.getUTCDate()).padStart(2, '0');
+//                                    const hour = String(date.getUTCHours()).padStart(2, '0');
+//                                    const minute = String(date.getUTCMinutes()).padStart(2, '0');
+//
+//                                    return `${month}-${day} ${hour}:${minute}`;
                                 };
                                  // Update each sub_schedule
                                 const updatedSubSchedules = subSchedulesParsed.map(subSchedule => {
@@ -649,8 +678,10 @@ function Home() {
                 if (userProfileResponse.status === 200) {
                     //console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
-                    //console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
-                    setlikes_received(userProfileResponse.data.likes_received);
+                    console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
+                    let tmp_likes_received = parseInt(userProfileResponse.data.likes_received, 10)+ 1;
+
+                    setlikes_received(tmp_likes_received);
                     setInvitationCode(userProfileResponse.data.invite_code);
                     //console.log("userProfileResponse.data.userLikees",userProfileResponse.data.likees);
                     setuserLikees(userProfileResponse.data.likees);
@@ -734,7 +765,7 @@ function Home() {
                                               alignItems="center" xs="auto" sx={{mr: 3}}
                                         >
                                             <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {formatTime(timeStringToSeconds(total_time))}
+                                                {total_time.includes('.') ? total_time.split('.')[0] : total_time}
                                             </Typography>
                                             <Box height={30}>
                                                 <Typography variant="h7" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
@@ -758,7 +789,7 @@ function Home() {
                                               alignItems="center" xs="auto" sx={{mr: 3}}
                                         >
                                             <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                {formatScore(likes_received + 1)}
+                                                {(likes_received === null || likes_received === undefined) ? 1 :  formatLikes(likes_received)}
                                             </Typography>
                                             <Box height={30}>
                                                 <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
@@ -850,10 +881,17 @@ function Home() {
                                     </Grid>
                                 </Grid>
                             </Paper>
-                            <Card sx={{ml: 4, width: 600, height: 500}}>
-                                {chartData && (
-                                    <Line data={chartData} options={options} />
-                                )}
+                            <Card sx={{ ml: 4, width: 600, height: 500 }}>
+                                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
+                                    <Typography variant="h6" align="center" gutterBottom sx={{ mt: 2 }}>
+                                        Lastest 50 actions history chart
+                                    </Typography>
+                                    <Box width="100%" height="90%">
+                                        {chartData && (
+                                            <Line data={chartData} options={options} />
+                                        )}
+                                    </Box>
+                                </Box>
                             </Card>
                         </Grid>
                         <Grid container item direction="row" alignItems="center" justifyContent="space-around"
