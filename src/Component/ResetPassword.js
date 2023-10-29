@@ -64,20 +64,52 @@ function ResetPassword() {
         } else if (values.password !== values.password_verfy){
             alert("The passwords you input don't match.");
         }
-        let encrypt_pwd = md5(values.password);
+        let encrypt_pwd = values.password;
         let data = new FormData();
-        data.append("username",values.username);
         data.append("email",values.email);
-        data.append("password",encrypt_pwd);
-        axios.post(server+"/rest-auth/reset/",data,{headers:{"Content-Type":'application/json'}}).then(function (response) {
-            if(response.status===201){
-                cookie.save("user_id",values.username);
-                history.push({pathname:"/",state:{}});
-                setTopage("Home");
-            }else{
-                console.log("Fail");
-            }
-        })
+
+        // 1. 获取token和uid
+        axios.post(server + "/exercise/password_reset/",data).then(function (response) {
+          if (response.status === 200) {
+            const { token, uid } = response.data;
+
+            // 2. 设置新密码和构建数据
+            const data = new FormData();
+            data.append("new_password1", encrypt_pwd);
+            data.append("new_password2", encrypt_pwd); // 与new_password1相同
+            data.append("uid", uid);
+            data.append("token", token);
+
+            // 3. 调用密码重置API
+            axios
+              .post(server + "/rest-auth/password/reset/confirm/", data, {
+                headers: { "Content-Type": "multipart/form-data" },
+              })
+              .then(function (response) {
+                if (response.status === 200) {
+                  alert("Password reset successful.");
+                  history.push({pathname:"/",state:{}});
+                  setTopage("Home");
+                } else {
+                  console.log("Password reset failed.");
+                  // 执行失败后的操作
+                }
+              })
+              .catch(function (error) {
+                if (error.response && error.response.data && error.response.data.new_password2) {
+                  const errorMessage = error.response.data.new_password2.join(", ");
+                  alert(errorMessage);
+                  // 在页面上显示错误消息，例如使用setState来更新组件的状态以显示错误信息
+                } else {
+                  console.log("Unknown error.");
+                }
+              });
+          } else {
+            console.log("Failed to get token and uid.");
+            // 处理获取token和uid失败的情况
+          }
+        });
+
     }
     const Reset_Verify_Email = () => {
         setVerified(true)
