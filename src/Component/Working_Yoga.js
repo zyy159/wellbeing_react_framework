@@ -812,7 +812,7 @@ function Working_Yoga(){
          mapScore = 0;} else {
          mapScore = 1 - consineDistance;
          mapScore = Math.round((mapScore-0.5)*200) }
-        console.log("similarityCompare", similarity, mapScore);
+       // console.log("similarityCompare", similarity, mapScore);
 //        console.log("confidenceSimilarity:", confidenceSimilarity);
         //console.log("Similarity Percentage:", (similarity + 1) / 2 * 100); // Convert range from [-1, 1] to [0, 100]
         let similarityScore = (similarity + 1) / 2 * 100 * confidenceSimilarity;
