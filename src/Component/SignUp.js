@@ -102,9 +102,9 @@ function SignUp() {
             cookie.save("user_id",values.username, { maxAge: 60*60*24*365 });
             cookie.save("token",response.data.key, { maxAge: 60*60*24*365 });
             // 如果注册成功，并且我们有一个有效的邀请码，提交邀请API的请求
-            console.log("inviteRespond",inviteCode,response);
+            //console.log("inviteRespond",inviteCode,response);
             if (response.status === 201 && inviteCode) {
-                console.log("inviteRespond",response);
+                //console.log("inviteRespond",response);
                 const token = cookie.load("token");
                 axios.post('https://wellbeing.htcangelfund.com/api/exercise/invite/', {
                     code: inviteCode
@@ -115,6 +115,14 @@ function SignUp() {
                     }
                 });
             }
+            emailjs.send("service_89efw7f","template_qu1hm1r", {
+                    to_name: values.username,
+                    to_email: values.email,
+                },"NwUcEIZUuGjkuoiEf").then((result) => {
+                    console.log('SUCCESS!', result.text);
+                }, (error) => {
+                    console.log('The welcome mail fail to be sent!...', error.text);
+            });
             history.push({pathname:"/",state:{}});
             setTopage("Home");
         }).catch(err => {
