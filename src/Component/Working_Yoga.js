@@ -19,6 +19,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from "@mui/material/Typography";
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
+import AudioPlayer from 'react-audio-player';
 
 import cookie from "react-cookies";
 import axios from 'axios';
@@ -86,7 +87,10 @@ function Working_Yoga(){
     const [isImageLoaded, setIsImageLoaded] = React.useState(false);
     const [isPoseEstimated, setIsPoseEstimated] = React.useState(false);
     const [isPersonDetected, setIsPersonDetected] = React.useState(true); // 默认值设为true
-
+    const [isMuted, setIsMuted] = React.useState(false);
+    const [isPlaying, setIsPlaying] = React.useState(false);
+    const [audio] = React.useState(new Audio('https://wellbeing-resources.oss-cn-hangzhou.aliyuncs.com/exercise_music/HSBC%20Sound.MP3'));
+    const [videoStream, setVideoStream] = React.useState(null);
 
     const stop = () => {
         setShowIndex(0); // 重置轮播到第一张图片
@@ -94,6 +98,9 @@ function Working_Yoga(){
         setShouldStart(false); // 确保轮播不会自动开始
         setIsPaused(true); // 将轮播设置为暂停状态
         setStartComparison(false); // 确保不进行视频动作识别
+        // 添加停止音乐播放的逻辑
+        audio.pause();
+        setIsPlaying(false);
         // 执行页面导航到主页 "Home"
         // 显示提示信息
         alert("You are about to leave the exercise page and return to the homepage.");
@@ -102,6 +109,7 @@ function Working_Yoga(){
     }
     const pause = () => {
         setIsPaused(true);
+        audio.pause();
         setShowPaused(false);
     }
     const start = () => {
@@ -117,6 +125,8 @@ function Working_Yoga(){
         setPostActions(false);
         setShowCongratulations(false);  // 设置为 true 以显示 "Congratulation"
         setShowStars(false);  // 设置为 true 以显示 "Stars"
+        // 在用户点击 "Start" 按钮时开始播放音乐，切换音乐播放状态
+        audio.play();
         //console.log("showCongratulations02",showCongratulations,showStars);
         setStatus("In Progress");
     }
@@ -267,6 +277,16 @@ function Working_Yoga(){
             setTopage("SignIn")
         }
     }, []);
+    // 切换静音状态
+    const toggleMute = () => {
+       audio.muted = !isMuted;
+       setIsMuted(!isMuted);
+    };
+
+    useEffect(() => {
+        audio.loop = true; // 设置音频循环播放
+      }, []);
+
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const exerciseParam = params.get('exercise');
@@ -347,6 +367,7 @@ function Working_Yoga(){
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
                 video.srcObject = stream;
+                setVideoStream(stream);
                 //console.log("Video stream : " , stream);
                 video.addEventListener('loadeddata', handleVideoLoaded);
             })
@@ -358,6 +379,34 @@ function Working_Yoga(){
             video.removeEventListener('loadeddata', handleVideoLoaded);
         };
     }, []);
+
+    useEffect(() => {
+        // 添加 beforeunload 事件监听器
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        // 在组件卸载时清除事件监听器
+        return () => {
+          window.removeEventListener("beforeunload", handleBeforeUnload);
+          audio.pause();
+          if (videoStream) {
+              videoStream.getTracks().forEach((track) => {
+                track.stop();
+              });
+          }
+//          stop(); // 确保在页面卸载时停止所有活动
+        };
+    }, []);
+
+    const handleBeforeUnload = (event) => {
+        // 在用户即将离开页面时暂停音乐播放
+         audio.pause();
+         // 关闭视频流监听
+        if (videoStream) {
+          videoStream.getTracks().forEach((track) => {
+            track.stop();
+          });
+        }
+    };
 
     // 用于图片轮播的 useEffect
     useEffect(() => {
@@ -869,6 +918,7 @@ function Working_Yoga(){
                                           <p style={{color: 'blue', fontWeight: 'bold'}}>Great: {great}</p>
                                           <p style={{color: 'purple', fontWeight: 'bold'}}>Awesome: {awesome}</p>
                                     </Grid>
+
                                     {showCongratulations && (
                                         <div style={{
                                             position: 'absolute',
@@ -919,7 +969,15 @@ function Working_Yoga(){
                                             </Button>
                                         </span>
                                     </Tooltip>
-
+                                    <Button
+                                                variant={"outlined"}
+                                                color={"error"}
+                                                size="large"
+                                                sx={{ml: 4, fontWeight: 'bold', fontFamily: 'MSYH'}}
+                                                onClick={toggleMute}
+                                            >
+                                                {isMuted ? "Music" : "Nomusic"}
+                                            </Button>
                                     {/* Stop Button */}
                                     <Tooltip title={isImageLoaded && isPoseEstimated ? "" : "Loading, please wait a minute"}>
                                         <span>
