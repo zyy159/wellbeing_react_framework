@@ -111,7 +111,7 @@ function Home() {
     };
 
     function timeStringToSeconds(timeString) {
-      console.log("timeString", timeString);
+      //console.log("timeString", timeString);
       const dayMatch = timeString.match(/(\d+) days,/);
       const timeMatch = timeString.match(/(\d{1,2}):(\d{2}):(\d{2})\.\d+/);
 
@@ -142,7 +142,7 @@ function Home() {
             console.error("formatTime was called with NaN");
             return "";
         }
-        console.log("formatTime(seconds)",seconds);
+        //console.log("formatTime(seconds)",seconds);
         const days = Math.floor(seconds / (3600*24));
         seconds  -= days*3600*24;
         const hrs   = Math.floor(seconds / 3600);
@@ -182,7 +182,7 @@ function Home() {
                             "Authorization": "Token " + userToken
                         }
                     });
-            console.log("userresponse",userresponse);
+            //console.log("userresponse",userresponse);
 
             const liker = userresponse.data.pk;
             let data = {
@@ -464,11 +464,11 @@ function Home() {
                 const actions = response.data.results;
                 const currentOwnerId = cookie.load('user_id');
                 const filteredActions = actions.filter(action => action.owner === currentOwnerId);
-                console.log("actions",filteredActions);
+                //console.log("actions",filteredActions);
                 const labels = filteredActions.map(action => new Date(action.start_time).toLocaleDateString());
                 const caloriesData = filteredActions.map(action => action.calories);
                 const scoreData = filteredActions.map(action => action.score);
-                console.log("actionsHistory",labels,scoreData,caloriesData);
+                //console.log("actionsHistory",labels,scoreData,caloriesData);
                 const maxCalories = Math.max(...caloriesData);
                 setmaxCalories(maxCalories);
                 const maxScore = Math.max(...scoreData);
@@ -498,7 +498,7 @@ function Home() {
                     ],
                 });
             } catch (error) {
-                console.log("error",error);
+                //console.log("error",error);
                 console.error('Failed to fetch data from API:', error);
             }
         };
@@ -530,7 +530,7 @@ function Home() {
                         cookie.save("email", summaryResponse.data["email"], { maxAge: 60 * 60 * 24 * 365 });
                         setWellbeing_level(summaryResponse.data["wellbeing_level"]);
                         setTotal_score(summaryResponse.data["total_score"]);
-                        console.log("total_time",total_time);
+                        //console.log("total_time",total_time);
                         setTotal_time(summaryResponse.data["total_time"]);
                         //console.log("wellbeing_level", wellbeing_level);
                     } else {
@@ -549,7 +549,7 @@ function Home() {
                     //console.log("cookie.load('user_id'",cookie.load('user_id'));
                     //const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
                     const ownerPlans = allPlans;
-                    console.log("ownerPlans",ownerPlans);
+                    //console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
                             const response = await axios.get(exerciseUrl,{
@@ -678,7 +678,7 @@ function Home() {
                 if (userProfileResponse.status === 200) {
                     //console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
-                    console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
+                    //console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
                     let tmp_likes_received = parseInt(userProfileResponse.data.likes_received, 10)+ 1;
 
                     setlikes_received(tmp_likes_received);
@@ -722,7 +722,7 @@ function Home() {
                 console.error("Error fetching badge data: ", error);
             }
         };
-        console.log("userProfile",userProfile,userToken);
+        //console.log("userProfile",userProfile,userToken);
         fetchBadgeData();
     }, [userProfile, userToken]);
 
