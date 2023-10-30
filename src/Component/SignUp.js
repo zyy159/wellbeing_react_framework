@@ -87,11 +87,6 @@ function SignUp() {
             alert("Please input the correct Verification Code");
             handleRefresh();
         }
-//        let data = new FormData();
-//        data.append("username",values.username);
-//        data.append("email",values.email);
-//        data.append("password1",values.password);
-//        data.append("password2",values.password_verfy);
         const data = {
           username: values.username,
           email: values.email,
@@ -128,15 +123,23 @@ function SignUp() {
         }).catch(err => {
                console.log("err",err);
                if (err.response && err.response.data) {
-                    const { username, email } = err.response.data;
-                    let errorMsg = "";
-                    if (username) errorMsg += `Username: ${username}\n`;
-                    if (email) errorMsg += `Email: ${email}\n`;
-                    if(errorMsg=="") errorMsg+=err.response.data.non_field_errors;
+                // Initialize an empty array to hold all the error messages
+                let errorMessages = [];
 
-                    // 在这里你可以设置一个状态来保存这个错误信息，
-                    // 然后在你的组件中显示它。
-                    alert(errorMsg);
+                // Loop over each key in the response data object
+                for (const key in err.response.data) {
+                    // Check if the key is indeed a property of the object
+                    if (err.response.data.hasOwnProperty(key)) {
+                        // Add the messages to the errorMessages array
+                        errorMessages = errorMessages.concat(err.response.data[key]);
+                    }
+                }
+
+                // Join all error messages with a newline character to separate them
+                const errorMsg = errorMessages.join('\n');
+
+                // Display the concatenated error messages
+                alert(errorMsg);
             } else {
 
                 alert('Fail to register user!');
@@ -172,6 +175,11 @@ function SignUp() {
     }
     //Verify the invitecode
     const verifyInviteCode = async () => {
+        if (!inviteCode) { // Check if inviteCode is falsy (empty, null, undefined, etc.)
+            setInviteCodeStatus(null); // Reset invite code status or set it to a default state
+            return; // Exit the function early
+        }
+
         try {
             // 在这里调用您的API来验证邀请码
             const response = await axios.get(server + "exercise/profile/" + inviteCode + "/");
