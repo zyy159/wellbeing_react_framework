@@ -210,6 +210,12 @@ function MakeSchedule(){
             //setDate_list(date_Func(localFromDate, localToDate))
 
            // console.log("date_list",date_list);
+           // Get to date
+           if (finalDateList.length > 0) {
+              const endDate = finalDateList[finalDateList.length - 1];
+              const localToDate = dayjs.utc(endDate).local();
+              setTo_date(localToDate); // 用最后一个日期更新 to_date
+           }
         } else {
             setTo_date(null);
             setDate_list([])
