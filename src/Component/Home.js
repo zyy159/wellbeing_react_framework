@@ -558,7 +558,7 @@ function Home() {
                                     "Authorization": "Token " + token
                                 }
                             });
-                            //console.log("exercise/schedules/", response.data);
+                            console.log("fetchExerciseDetails", response.data);
                             return response.data;
                         } catch (error) {
                             console.error("Failed to fetch exercise details:", error);
@@ -573,12 +573,22 @@ function Home() {
 
                                 // Parse sub_schedules to JSON
                                 const subSchedulesParsed = JSON.parse(plan.sub_schedules);
-                                //console.log("subSchedulesParsed",subSchedulesParsed);
+                                console.log("subSchedulesParsed",subSchedulesParsed);
                                 // Check if there is at least one future sub_schedule
+                                const sortedSubSchedules = subSchedulesParsed.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+                                console.log("sortedSubSchedules",sortedSubSchedules);
                                 const now = new Date();
-                                const hasFutureSubSchedule = subSchedulesParsed.some(sub_schedule =>
+                                 console.log("new Date()",now);
+                                const hasFutureSubSchedule = sortedSubSchedules.some(sub_schedule =>
                                     new Date(sub_schedule.start_time) > now
                                 );
+                                console.log("hasFutureSubSchedule",hasFutureSubSchedule);
+                                const futureSubSchedules = subSchedulesParsed
+                                  ? subSchedulesParsed
+                                      .filter(sub_schedule => new Date(sub_schedule.start_time) > new Date()) // Keep only future sub_schedules
+                                      .sort((a, b) => new Date(a.start_time) - new Date(b.start_time)) // Sort them by start_time
+                                  : [];
+
                                 // If there are no future sub_schedules, skip this plan
                                 //console.log("hasFutureSubSchedule",hasFutureSubSchedule)
                                 if (!hasFutureSubSchedule) {
@@ -590,30 +600,17 @@ function Home() {
                                     //console.log("isoString",isoString);
                                     const localDate = dayjs.utc(isoString).local();
                                     return localDate.format('MM-DD HH:mm');
-//                                    const date = new Date(isoString);
-//                                    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-//                                    const day = String(date.getUTCDate()).padStart(2, '0');
-//                                    const hour = String(date.getUTCHours()).padStart(2, '0');
-//                                    const minute = String(date.getUTCMinutes()).padStart(2, '0');
-//
-//                                    return `${month}-${day} ${hour}:${minute}`;
                                 };
                                  // Update each sub_schedule
-                                const updatedSubSchedules = subSchedulesParsed.map(subSchedule => {
+                                const updatedSubSchedules = sortedSubSchedules.map(subSchedule => {
                                     return {
                                       ...subSchedule,
                                       start_time: convertToMMDDHHMM(subSchedule.start_time),
                                       end_time: convertToMMDDHHMM(subSchedule.end_time)
                                     };
                                 });
-
-                                // Construct the GO button URL
-                                //console.log("plan.exercises",plan)
-                                //console.log("plan.exercises[0]",plan.exercises[0])
                                 const exerciseId = plan.exercises[0].replace(/\/$/, '').split('/').pop();
                                 const scheduleID = plan.id
-                                //console.log("exerciseId",exerciseId);
-                                //setExerciseId(exerciseId);  // Set the exerciseId state
                                 const hostname = window.location.hostname;
                                 const protocol = window.location.protocol;
                                 const port = window.location.port
@@ -632,7 +629,7 @@ function Home() {
                                 return {
                                     ...plan,
                                     exerciseDetails,
-                                    sub_schedules: updatedSubSchedules, // Replace the original string with the parsed
+                                    sub_schedules: futureSubSchedules, // Replace the original string with the parsed
                                     goButtonUrl
                                 };
                             } catch (error) {
@@ -644,9 +641,36 @@ function Home() {
 
                     try {
                         const detailedPlans = await fetchAllPlansDetails();
-
                         const validPlans = detailedPlans.filter(plan => plan !== null); // Exclude null plans
-                        setUpcomingPlans(validPlans);
+                        // 将每个计划的 sub_schedules 展开为单独的详细计划
+                        let newdetailedPlans = [];
+                        validPlans.forEach(plan => {
+                          if (plan.sub_schedules && plan.sub_schedules.length > 0) {
+                            plan.sub_schedules.forEach(sub_schedule => {
+                              const startTime = new Date(sub_schedule.start_time);
+                              if (startTime > new Date()) { // 仅添加未来的子计划
+                                newdetailedPlans.push({
+                                  ...plan,
+                                  start_time: sub_schedule.start_time,
+                                  end_time: sub_schedule.end_time
+                                });
+                              }
+                            });
+                          }
+                        });
+                        console.log("newdetailedPlans",newdetailedPlans);
+                        // 按 start_time 排序这个新的数组
+                        newdetailedPlans.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+                        console.log("SortdetailedPlans",newdetailedPlans);
+                        setUpcomingPlans(newdetailedPlans); // Now it contains only valid plans
+                        // Now you may want to sort the entire plans themselves by the earliest sub_schedule start_time
+//                        const sortedPlans = detailedPlans
+//                            .filter(plan => plan !== null && plan.sub_schedules.length > 0) // Exclude null plans and plans without sub_schedules
+//                            .sort((a, b) => new Date(a.sub_schedules[0].start_time) - new Date(b.sub_schedules[0].start_time));
+//
+                       // setUpcomingPlans(detailedPlans);
+//                        const validPlans = detailedPlans.filter(plan => plan !== null); // Exclude null plans
+//                        setUpcomingPlans(validPlans);
                     } catch (error) {
                         console.error("Failed to fetch all plan details:", error);
                     }
@@ -828,43 +852,38 @@ function Home() {
                                                 Upcoming Plans
                                             </Typography>
                                             <div className="plan-list" style={{ flex: 1, overflowY: 'auto' }}>
-                                                {upcomingPlans.map((plan, index) => (
+                                                  {upcomingPlans.map((plan, index) => (
                                                     <Grid container item direction="column" key={index} className="plan-list-row">
-                                                        <Grid container item direction="row" justifyContent="flex-start"
-                                                              alignItems="center" sx={{ml: 2, mt: 2, mb: 1}}>
+                                                      <Grid container item direction="row" justifyContent="flex-start"
+                                                            alignItems="center" sx={{ ml: 2, mt: 2, mb: 1 }}
+                                                            className="sub-schedule-row">
+                                                        <Grid container item xs={8} direction="row" alignItems="center"
+                                                              justifyContent="flex-start" sx={{ ml: 2 }}>
+                                                          <Grid item xs={10} className="text-container">
+                                                            <Typography variant="body1" sx={{ mt: 1, fontFamily: 'MSYH' }}>
+                                                              {plan.name}
+                                                            </Typography>
+                                                          </Grid>
+                                                          <Grid item xs={10} className="text-container">
+                                                            <Typography variant="body1" sx={{ mt: 1, fontFamily: 'MSYH' }}>
+                                                              Date: {new Date(plan.start_time).toLocaleString()}
+                                                            </Typography>
+                                                          </Grid>
+                                                          <Grid item xs={2} className="go-button-container">
+                                                            <Button variant="contained" sx={{ fontSize: 'h6.fontSize', fontFamily: 'MSYH' }} color="error"
+                                                                    onClick={() => {
+                                                                        window.location.href = plan.goButtonUrl;
+                                                                    }}>
+                                                              Go
+                                                              {/* Assuming BoltIcon is a component you have defined/imported */}
+                                                              <BoltIcon variant="small" />
+                                                            </Button>
+                                                          </Grid>
                                                         </Grid>
-                                                            {plan.sub_schedules.filter(sub_schedule => moment(sub_schedule.start_time, "MM-DD HH:mm") > moment()).map((sub_schedule, subIndex) => (
-                                                            <Grid container item direction="row" justifyContent="flex-start"
-                                                                  alignItems="center" sx={{ml: 2, mt: 2, mb: 1}} key={subIndex}
-                                                                  className="sub-schedule-row">
-                                                                <Grid container item xs={8} direction="row"
-                                                                alignItems="center"
-                                                                      justifyContent="flex-start" sx={{ml: 2}}>
-                                                                      <Grid item xs={10} className="text-container">
-                                                                        <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                                                                            {plan.name}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid item xs={10} className="text-container">
-                                                                        <Typography variant="body1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                                                                            Date: {sub_schedule.start_time}
-                                                                        </Typography>
-                                                                    </Grid>
-                                                                    <Grid item xs={2} className="go-button-container">
-                                                                        <Button variant="contained" sx={{fontSize: 'h6.fontSize', fontFamily: 'MSYH'}} color="error"
-                                                                                onClick={() => {
-                                                                                    window.location.href = plan.goButtonUrl;
-                                                                                }}>
-                                                                            Go
-                                                                            <BoltIcon variant="small"/>
-                                                                        </Button>
-                                                                    </Grid>
-                                                                </Grid>
-                                                            </Grid>
-                                                        ))}
+                                                      </Grid>
                                                     </Grid>
-                                                ))}
-                                            </div>
+                                                  ))}
+                                                </div>
                                             <Grid container item direction="row" justifyContent="center"
                                                   alignItems="center" xs="auto" sx={{m: 2}}>
                                                 <Button color={"error"} sx={{fontWeight: 'bold', fontFamily: 'MSYH'}}
