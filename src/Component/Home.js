@@ -346,8 +346,6 @@ function Home() {
                     // 如果当前用户点赞过此用户，则将hasLiked设置为true
                     hasLiked: userLikees.includes(user.pk)
                 }));
-                //console.log("updatedUserRanking",updatedUserRanking);
-                //console.log("userLikees",userLikees);
                 setUserRanking(updatedUserRanking);
             }
             //setUserRanking(response.data);
@@ -375,8 +373,6 @@ function Home() {
                     // 如果当前用户点赞过此用户，则将hasLiked设置为true
                     hasLiked: userLikees.includes(user.pk)
                 }));
-                //console.log("updatedUserRanking",updatedUserRanking);
-                //console.log("userLikees",userLikees);
                 setUserScore(updatedUserScore);
             }
 
@@ -404,8 +400,6 @@ function Home() {
                     // 如果当前用户点赞过此用户，则将hasLiked设置为true
                     hasLiked: userLikees.includes(user.pk)
                 }));
-                //console.log("updatedUserRanking",updatedUserRanking);
-                //console.log("userLikees",userLikees);
                 setUserTime(updatedUserTime);
             }
 
@@ -433,8 +427,6 @@ function Home() {
                     // 如果当前用户点赞过此用户，则将hasLiked设置为true
                     hasLiked: userLikees.includes(user.pk)
                 }));
-                //console.log("updatedUserRanking",updatedUserRanking);
-                //console.log("userLikees",userLikees);
                 setUserCalorie(updatedUserCalorie);
             }
 
@@ -444,7 +436,6 @@ function Home() {
     };
     useEffect(() => {
             if(userToken && userLikees){
-                //console.log("userToken",userToken);
                 fetchUserRanking();
                 fetchUserScore();
                 fetchUserTime();
@@ -464,11 +455,9 @@ function Home() {
                 const actions = response.data.results;
                 const currentOwnerId = cookie.load('user_id');
                 const filteredActions = actions.filter(action => action.owner === currentOwnerId);
-                //console.log("actions",filteredActions);
                 const labels = filteredActions.map(action => new Date(action.start_time).toLocaleDateString());
                 const caloriesData = filteredActions.map(action => action.calories);
                 const scoreData = filteredActions.map(action => action.score);
-                //console.log("actionsHistory",labels,scoreData,caloriesData);
                 const maxCalories = Math.max(...caloriesData);
                 setmaxCalories(maxCalories);
                 const maxScore = Math.max(...scoreData);
@@ -498,7 +487,6 @@ function Home() {
                     ],
                 });
             } catch (error) {
-                //console.log("error",error);
                 console.error('Failed to fetch data from API:', error);
             }
         };
@@ -524,15 +512,10 @@ function Home() {
                     });
 
                     if (summaryResponse.status === 200) {
-                        //console.log("Total time from API:", summaryResponse.data["total_time"]);
-                        //console.log("ummaryResponse.data:", summaryResponse.data);
-
                         cookie.save("email", summaryResponse.data["email"], { maxAge: 60 * 60 * 24 * 365 });
                         setWellbeing_level(summaryResponse.data["wellbeing_level"]);
                         setTotal_score(summaryResponse.data["total_score"]);
-                        //console.log("total_time",total_time);
                         setTotal_time(summaryResponse.data["total_time"]);
-                        //console.log("wellbeing_level", wellbeing_level);
                     } else {
                         console.log("Failed to fetch user summary");
                     }
@@ -545,11 +528,7 @@ function Home() {
                     });
 
                     const allPlans = schedulesResponse.data.results;  // 注意这里从 response.data 中取出了 results 字段
-                    //console.log("allPlans",allPlans);
-                    //console.log("cookie.load('user_id'",cookie.load('user_id'));
-                    //const ownerPlans = allPlans.filter(plan => plan.owner === cookie.load('user_id'));
                     const ownerPlans = allPlans;
-                    //console.log("ownerPlans",ownerPlans);
                     const fetchExerciseDetails = async (exerciseUrl) => {
                         try {
                             const response = await axios.get(exerciseUrl,{
@@ -558,7 +537,6 @@ function Home() {
                                     "Authorization": "Token " + token
                                 }
                             });
-                            console.log("fetchExerciseDetails", response.data);
                             return response.data;
                         } catch (error) {
                             console.error("Failed to fetch exercise details:", error);
@@ -573,16 +551,13 @@ function Home() {
 
                                 // Parse sub_schedules to JSON
                                 const subSchedulesParsed = JSON.parse(plan.sub_schedules);
-                                console.log("subSchedulesParsed",subSchedulesParsed);
                                 // Check if there is at least one future sub_schedule
                                 const sortedSubSchedules = subSchedulesParsed.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
-                                console.log("sortedSubSchedules",sortedSubSchedules);
+
                                 const now = new Date();
-                                 console.log("new Date()",now);
                                 const hasFutureSubSchedule = sortedSubSchedules.some(sub_schedule =>
                                     new Date(sub_schedule.start_time) > now
                                 );
-                                console.log("hasFutureSubSchedule",hasFutureSubSchedule);
                                 const futureSubSchedules = subSchedulesParsed
                                   ? subSchedulesParsed
                                       .filter(sub_schedule => new Date(sub_schedule.start_time) > new Date()) // Keep only future sub_schedules
@@ -590,14 +565,12 @@ function Home() {
                                   : [];
 
                                 // If there are no future sub_schedules, skip this plan
-                                //console.log("hasFutureSubSchedule",hasFutureSubSchedule)
                                 if (!hasFutureSubSchedule) {
                                     return null;
                                 }
 
 
                                 const convertToMMDDHHMM = (isoString) => {
-                                    //console.log("isoString",isoString);
                                     const localDate = dayjs.utc(isoString).local();
                                     return localDate.format('MM-DD HH:mm');
                                 };
@@ -623,7 +596,6 @@ function Home() {
                                 }
                                 const goButtonUrl =
                                 `${baseUrl}/Working_Yoga?exercise=${exerciseId}&schedule=${scheduleID}`;
-                                //console.log("goButtonUrl",goButtonUrl)
 
 
                                 return {
@@ -658,19 +630,9 @@ function Home() {
                             });
                           }
                         });
-                        console.log("newdetailedPlans",newdetailedPlans);
                         // 按 start_time 排序这个新的数组
                         newdetailedPlans.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
-                        console.log("SortdetailedPlans",newdetailedPlans);
-                        setUpcomingPlans(newdetailedPlans); // Now it contains only valid plans
-                        // Now you may want to sort the entire plans themselves by the earliest sub_schedule start_time
-//                        const sortedPlans = detailedPlans
-//                            .filter(plan => plan !== null && plan.sub_schedules.length > 0) // Exclude null plans and plans without sub_schedules
-//                            .sort((a, b) => new Date(a.sub_schedules[0].start_time) - new Date(b.sub_schedules[0].start_time));
-//
-                       // setUpcomingPlans(detailedPlans);
-//                        const validPlans = detailedPlans.filter(plan => plan !== null); // Exclude null plans
-//                        setUpcomingPlans(validPlans);
+                        setUpcomingPlans(newdetailedPlans);
                     } catch (error) {
                         console.error("Failed to fetch all plan details:", error);
                     }
@@ -689,7 +651,6 @@ function Home() {
             try {
                 // 获取用户个人信息
                 const token = cookie.load("token");
-                //console.log("Start to get user profile token",userToken,token);
                 const userProfileResponse = await axios.get(server + "exercise/userprofile/", {
                     headers: {
                         "Content-Type": 'application/json',
@@ -697,17 +658,13 @@ function Home() {
                     }
                 });
                 // 输出服务器响应以进一步调试
-                //console.log("Server response: ", userProfileResponse.data);
 
                 if (userProfileResponse.status === 200) {
-                    //console.log("userProfileResponse.data",userProfileResponse.data);
                     setUserProfile(userProfileResponse.data);
-                    //console.log("userProfileResponse.data.likes_received",userProfileResponse.data.likes_received);
                     let tmp_likes_received = parseInt(userProfileResponse.data.likes_received, 10)+ 1;
 
                     setlikes_received(tmp_likes_received);
                     setInvitationCode(userProfileResponse.data.invite_code);
-                    //console.log("userProfileResponse.data.userLikees",userProfileResponse.data.likees);
                     setuserLikees(userProfileResponse.data.likees);
                 } else {
                     console.log("Failed to fetch user profile");
