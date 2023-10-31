@@ -285,6 +285,7 @@ function Working_Yoga(){
 
     useEffect(() => {
         audio.loop = true; // 设置音频循环播放
+        audio.volume = 0.1; // 设置音量为 10%
       }, []);
 
     useEffect(() => {
