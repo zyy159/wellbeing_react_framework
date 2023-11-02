@@ -37,13 +37,14 @@ import { TimeField } from '@mui/x-date-pickers/TimeField';
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import SendIcon from '@mui/icons-material/Send';
-
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import cookie from "react-cookies";
 import axios from "axios";
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
 const fronEndserver = 'https://wellbeing.htcangelfund.com/';
+
 dayjs.extend(utc);
 
 const Theme = createTheme({
@@ -316,47 +317,50 @@ function MakeSchedule(){
                                     </Grid>
                                 </Grid>
                                 <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.5, mt: 4, fontFamily: 'MSYH' }}>
-                                    Step 2: Select the Date Range
+                                    Step 2: Modify your plan
                                 </Typography>
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DemoContainer components={['DateRangePicker', 'DateRangePicker']}>
-                                        <Grid container item direction="row" alignItems="center" justifyContent="center" xs={"auto"}>
-                                            <DemoItem>
-                                                <ThemeProvider theme={Theme}>
-                                                    <StaticDateTimePicker
-                                                        color = "error"
-                                                        value={date_config.from_date}
-                                                        disabled = {date_config.step_two_disabled}
-                                                        orientation="landscape"
-                                                        slotProps={{
-                                                            toolbar: {hidden: true,},
-                                                            actionBar: {actions:[]},
-                                                        }}
-                                                        disablePast
-                                                        onChange={(newValue) =>
-                                                            setDate_config({...date_config, from_date: dayjs(newValue)})
-                                                        }
-                                                        sx = {{ fontFamily: 'MSYH' }}
-                                                    />
-                                                </ThemeProvider>
-                                            </DemoItem>
-                                            <Grid container item direction="column" alignItems="center" justifyContent="center" xs={"auto"}>
-                                                <DemoItem>
-                                                    <DateTimeField 
-                                                        color = "error"
+                                        <Grid container alignItems="center" justifyContent="center" xs={"auto"} sx={{ mt: 2 }}>
+                                            <Grid container alignItems="center" justifyContent="center">
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', fontFamily: 'MSYH', marginRight: '8px' }}>
+                                                    Modify start date:
+                                                </Typography>
+                                                <DemoItem sx={{ mb: 2 }}>
+                                                    <ThemeProvider theme={Theme}>
+                                                        <DateTimePicker
+                                                            disablePast
+                                                            color="error"
+                                                            value={date_config.from_date}
+                                                            views={['year', 'day', 'hours', 'minutes', 'seconds']}
+                                                            orientation="landscape"
+                                                            disabled={date_config.step_two_disabled}
+                                                            onChange={(newValue) =>
+                                                                setDate_config({ ...date_config, from_date: dayjs(newValue) })
+                                                            }
+                                                            sx={{ fontFamily: 'MSYH' }}
+                                                            ampm={false}
+                                                        />
+                                                    </ThemeProvider>
+                                                </DemoItem>
+                                            </Grid>
+                                            <Grid container item direction="row" alignItems="center" justifyContent="center" xs={"auto"} sx={{ mt: 2 }}>
+                                                <DemoItem sx={{ mb: 2 }}>
+                                                    <DateTimeField
+                                                      //  color="error"
                                                         label={"From Date"}
                                                         value={date_config.from_date}
                                                         readOnly
                                                         format="L HH:mm"
-                                                        sx={{fontFamily: 'MSYH'}}
+                                                        sx={{ fontFamily: 'MSYH' }}
                                                     />
                                                 </DemoItem>
-                                                <DemoItem >
-                                                    <DateTimeField 
-                                                        color = "error"
+                                                <DemoItem sx={{ mb: 2, ml: 2 }}>
+                                                    <DateTimeField
+                                                       // color="error"
                                                         label={"To Date"}
-                                                        sx = {{mt: 3, fontFamily: 'MSYH'}}
-                                                        value = {to_date}
+                                                        sx={{ fontFamily: 'MSYH' }}
+                                                        value={to_date}
                                                         readOnly
                                                         format="L HH:mm"
                                                     />
@@ -385,7 +389,7 @@ function MakeSchedule(){
                                                             <Typography variant="h7"
                                                                         sx={{fontWeight: 'bold', lineHeight: 1.5, mt: 1, fontFamily: 'MSYH'}}
                                                                         color={"error"}>
-                                                                {dayjs.utc(date).local().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')}
+                                                                {dayjs.utc(date).local().format('YYYY-MM-DDTHH:mm:ss')}
                                                             </Typography>
                                                         </ListItemText>
                                                         <ListItemSecondaryAction sx={{mr:4}}>
@@ -407,7 +411,12 @@ function MakeSchedule(){
                                                         <TimeField label="From Time"
                                                                    color = "error"
                                                                    value={edit_time}
-                                                                   onChange={(newValue) => setEdit_time(newValue)}
+                                                                   onChange={(newValue) => {
+                                                                        console.log("newValue",newValue);
+                                                                        const newValueInUtc = dayjs(newValue).utc().format();  // 转换为 UTC 时间并转换为 ISO 格式
+                                                                        console.log("newValueInUtc",newValueInUtc);
+                                                                        setEdit_time(newValueInUtc);
+                                                                    }}
                                                                    disablePast
                                                                    format="HH:mm"
                                                                    sx={{ fontFamily: 'MSYH' }}
