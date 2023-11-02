@@ -66,6 +66,7 @@ function Home() {
     const [userScore, setUserScore] = React.useState([]);
     const [userCalorie, setUserCalorie] = React.useState([]);
     const [userTime, setUserTime] = React.useState([]);
+    const [userInvites, setUserInvites] = React.useState([]);
     const [errorMsg, setErrorMsg] = React.useState(null);
     const [snackbarOpen, setSnackbarOpen] = React.useState(false);
     const [snackbarMessage, setSnackbarMessage] = React.useState('');
@@ -173,7 +174,15 @@ function Home() {
         return likes >= 1000 ? (likes / 1000).toFixed(1) + 'K' : likes;
     };
 
-    const handleLike = async (likee) => {
+    const handleMouseEnter = (userId) => {
+    // 在这里可以执行鼠标悬停时的逻辑，如果需要的话
+    };
+
+    const handleMouseLeave = () => {
+        // 在这里可以执行鼠标离开时的逻辑，如果需要的话
+    };
+
+    const UserRankinghandleLike = async (likee) => {
         try {
             //get current user ID
             const userresponse = await axios.get(server + "rest-auth/user/", {
@@ -196,7 +205,7 @@ function Home() {
             // 更新点赞数和hasLiked状态
             const updatedRanking = userRanking.map(user =>
                 user.pk === likee
-                    ? {...user, likes_received: user.likes_received, hasLiked: true}
+                    ? {...user, likes_received: user.likes_received + 1, hasLiked: true}
                     : user
             );
             setUserRanking(updatedRanking);
@@ -209,7 +218,79 @@ function Home() {
         }
     };
 
-    const MembershipUserList = ({ userRanking, handleLike }) => {
+    const UserScorehandleLike = async (likee) => {
+        try {
+            //get current user ID
+            const userresponse = await axios.get(server + "rest-auth/user/", {
+                        headers: {
+                            "Content-Type": 'application/json',
+                            "Authorization": "Token " + userToken
+                        }
+                    });
+            //console.log("userresponse",userresponse);
+
+            const liker = userresponse.data.pk;
+            let data = {
+                liker: liker,
+                likee: likee  // 使用传递进来的likee参数
+            };
+            await axios.post(server + "exercise/like/", data, {
+                headers: {"Content-Type": 'application/json', "Authorization": "Token " + userToken}
+            });
+
+            // 更新点赞数和hasLiked状态
+            const updatedRanking = userScore.map(user =>
+                user.pk === likee
+                    ? {...user, likes_received: user.likes_received + 1, hasLiked: true}
+                    : user
+            );
+            setUserScore(updatedRanking);
+            // 重新获取用户排名
+            //await fetchUserRanking();
+        } catch (error) {
+            console.error("Failed to like:", error.response);
+            setSnackbarMessage(error.response.data.error  || "Failed to like"); // Set the error message
+            setSnackbarOpen(true); // Open the Snackbar with the new message
+        }
+    };
+
+    const UserInviteshandleLike = async (likee) => {
+        try {
+            //get current user ID
+            const userresponse = await axios.get(server + "rest-auth/user/", {
+                        headers: {
+                            "Content-Type": 'application/json',
+                            "Authorization": "Token " + userToken
+                        }
+                    });
+            //console.log("userresponse",userresponse);
+
+            const liker = userresponse.data.pk;
+            let data = {
+                liker: liker,
+                likee: likee  // 使用传递进来的likee参数
+            };
+            await axios.post(server + "exercise/like/", data, {
+                headers: {"Content-Type": 'application/json', "Authorization": "Token " + userToken}
+            });
+
+            // 更新点赞数和hasLiked状态
+            const updatedRanking = userInvites.map(user =>
+                user.pk === likee
+                    ? {...user, likes_received: user.likes_received + 1, hasLiked: true}
+                    : user
+            );
+            setUserInvites(updatedRanking);
+            // 重新获取用户排名
+            //await fetchUserRanking();
+        } catch (error) {
+            console.error("Failed to like:", error.response);
+            setSnackbarMessage(error.response.data.error  || "Failed to like"); // Set the error message
+            setSnackbarOpen(true); // Open the Snackbar with the new message
+        }
+    };
+
+    const MembershipUserList = ({ userRanking, UserRankinghandleLike }) => {
         return (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {userRanking.slice(0, 100).map((user, index) => (
@@ -218,7 +299,13 @@ function Home() {
                             Top {index + 1}: {user.username} - {formatScore(user.points)} points
                         </Typography>
                         <div style={{display: 'flex', alignItems: 'center'}}>
-                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                            <IconButton
+                                onClick={() => UserRankinghandleLike(user.pk)}
+                                size="small"
+                                className="like-button" // 添加CSS类名
+                                onMouseEnter={() => handleMouseEnter(user.pk)}
+                                onMouseLeave={handleMouseLeave}
+                            >
                                 <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
                             </IconButton>
                             <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
@@ -236,7 +323,7 @@ function Home() {
         );
     };
 
-    const ScoreUserList = ({ userScore, handleLike }) => {
+    const ScoreUserList = ({ userScore, UserScorehandleLike }) => {
         return (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {userScore.slice(0, 100).map((user, index) => (
@@ -245,7 +332,13 @@ function Home() {
                             Top {index + 1}: {user.username} - {formatScore(user.total_score)} Score
                         </Typography>
                         <div style={{display: 'flex', alignItems: 'center'}}>
-                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                            <IconButton
+                                onClick={() => UserScorehandleLike(user.pk)}
+                                size="small"
+                                className="like-button" // 添加CSS类名
+                                onMouseEnter={() => handleMouseEnter(user.pk)}
+                                onMouseLeave={handleMouseLeave}
+                            >
                                 <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
                             </IconButton>
                             <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
@@ -263,34 +356,8 @@ function Home() {
         );
     };
 
-    const TimeUserList = ({ userTime, handleLike }) => {
-        return (
-            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                {userTime.slice(0, 100).map((user, index) => (
-                    <div key={user.pk} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
-                        <Typography variant="subtitle1" sx={{mt: 1, fontFamily: 'MSYH'}}>
-                            Top {index + 1}: {user.username} - {formatScore(user.total_time)} points
-                        </Typography>
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <IconButton onClick={() => handleLike(user.pk)} size="small">
-                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
-                                {formatLikes(user.likes_received)}
-                            </Typography>
-                            {errorMsg && (
-                                <Typography variant="body2" sx={{ color: 'red' }}>
-                                    {errorMsg}
-                                </Typography>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        );
-    };
 
-    const CalorieUserList = ({ userCalorie, handleLike }) => {
+    const CalorieUserList = ({ userCalorie, CalorieUserhandleLike }) => {
         return (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
                 {userCalorie.slice(0, 100).map((user, index) => (
@@ -299,7 +366,46 @@ function Home() {
                             Top {index + 1}: {user.username} - {formatScore(user.total_calories)} Calories
                         </Typography>
                         <div style={{display: 'flex', alignItems: 'center'}}>
-                            <IconButton onClick={() => handleLike(user.pk)} size="small">
+                            <IconButton
+                                onClick={() => CalorieUserhandleLike(user.pk)}
+                                size="small"
+                                className="like-button" // 添加CSS类名
+                                onMouseEnter={() => handleMouseEnter(user.pk)}
+                                onMouseLeave={handleMouseLeave}
+                            >
+                                <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
+                            </IconButton>
+                            <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
+                                {formatLikes(user.likes_received)}
+                            </Typography>
+                            {errorMsg && (
+                                <Typography variant="body2" sx={{ color: 'red' }}>
+                                    {errorMsg}
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const InvitesUserList = ({ userInvites, UserInviteshandleLike}) => {
+        return (
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {userInvites.slice(0, 100).map((user,index) => (
+                    <div key={user.pk} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <Typography variant="subtitle1" sx={{ mt: 1, fontFamily: 'MSYH' }}>
+                            Top index: {user.username} - {user.invites_sent} Invites
+                        </Typography>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <IconButton
+                                onClick={() => UserInviteshandleLike(user.pk)}
+                                size="small"
+                                className="like-button" // 添加CSS类名
+                                onMouseEnter={() => handleMouseEnter(user.pk)}
+                                onMouseLeave={handleMouseLeave}
+                            >
                                 <ThumbUpIcon sx={{ color: user.hasLiked ? 'pink' : 'grey' }} />
                             </IconButton>
                             <Typography variant="body2" sx={{ color: user.hasLiked ? 'pink' : 'grey' }}>
@@ -434,18 +540,42 @@ function Home() {
             console.error("Failed to fetch user score:", error);
         }
     };
+
+    const fetchUserInvites = async () => {
+        try {
+            const response = await axios.get(server + "exercise/userlist/?sort_by=invites_sent", {
+                headers: {
+                    "Content-Type": 'application/json',
+                    "Authorization": "Token " + userToken
+                }
+            });
+            if (response.data && Array.isArray(response.data)) {
+                // 更新每个用户的排名信息
+                const updatedUserInvites = response.data.map((user, index) => ({
+                    ...user,
+                    hasLiked: userLikees.includes(user.pk),
+                    invitesRank: index + 1
+                }));
+                setUserInvites(updatedUserInvites);
+            }
+        } catch (error) {
+            console.error("Failed to fetch user invites:", error);
+        }
+    };
+
     useEffect(() => {
             if(userToken && userLikees){
                 fetchUserRanking();
                 fetchUserScore();
                 fetchUserTime();
-                fetchUserCalorie();
+                fetchUserInvites(); // 获取邀请排名
             }
     }, [userToken,userLikees]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                let tmptoken = cookie.load("token")
                 const response = await axios.get(server +'exercise/actions/',{
                     headers: {
                         "Content-Type": 'application/json',
@@ -454,10 +584,10 @@ function Home() {
                 });
                 const actions = response.data.results;
                 const currentOwnerId = cookie.load('user_id');
-                const filteredActions = actions.filter(action => action.owner === currentOwnerId);
-                const labels = filteredActions.map(action => new Date(action.start_time).toLocaleDateString());
-                const caloriesData = filteredActions.map(action => action.calories);
-                const scoreData = filteredActions.map(action => action.score);
+                //const filteredActions = actions.filter(action => action.owner === currentOwnerId);
+                const labels = actions.map(action => new Date(action.start_time).toLocaleDateString());
+                const caloriesData = actions.map(action => action.calories);
+                const scoreData = actions.map(action => action.score);
                 const maxCalories = Math.max(...caloriesData);
                 setmaxCalories(maxCalories);
                 const maxScore = Math.max(...scoreData);
@@ -762,7 +892,7 @@ function Home() {
                                             </Typography>
                                             <Box height={30}>
                                                 <Typography variant="h7" sx={{mt: 1, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                                    Score Points
+                                                    Score
                                                 </Typography>
                                             </Box>
                                         </Grid>
@@ -878,7 +1008,7 @@ function Home() {
                                     'MSYH',textAlign: 'center' }}>
                                         Membership Points Leaderboard
                                     </Typography>
-                                    <MembershipUserList userRanking={userRanking} handleLike={handleLike} />
+                                    <MembershipUserList userRanking={userRanking} UserRankinghandleLike={UserRankinghandleLike} />
                                 </CardContent>
                             </Card>
                             <Card sx={{ width: '30%' }}>
@@ -887,16 +1017,15 @@ function Home() {
                                     'MSYH',textAlign: 'center' }}>
                                         Exercise Scores Leaderboard
                                     </Typography>
-                                    <ScoreUserList userScore={userScore} handleLike={handleLike} />
+                                    <ScoreUserList userScore={userScore} UserScorehandleLike={UserScorehandleLike} />
                                 </CardContent>
                             </Card>
                             <Card sx={{ width: '30%' }}>
                                 <CardContent>
-                                    <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily:
-                                    'MSYH',textAlign: 'center' }}>
-                                        Calories Burnt Leaderboard
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH', textAlign: 'center' }}>
+                                        Invites Leaderboard
                                     </Typography>
-                                    <CalorieUserList userCalorie={userCalorie} handleLike={handleLike} />
+                                    <InvitesUserList userInvites={userInvites} UserInviteshandleLike={UserInviteshandleLike}/>
                                 </CardContent>
                             </Card>
                             {/* Place Snackbar here */}
