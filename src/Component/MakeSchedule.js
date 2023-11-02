@@ -24,6 +24,8 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions';
 import DialogTitle from '@mui/material/DialogTitle';
+import Tooltip from '@mui/material/Tooltip';
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -393,9 +395,11 @@ function MakeSchedule(){
                                                             </Typography>
                                                         </ListItemText>
                                                         <ListItemSecondaryAction sx={{mr:4}}>
-                                                            <IconButton edge={"end"} onClick={()=>dialog_handleClickOpen(date)}>
-                                                                <EditCalendarIcon/>
-                                                            </IconButton>
+                                                            <Tooltip title="Coming Soon" arrow>
+                                                                <IconButton edge="end">
+                                                                    <EditCalendarIcon />
+                                                                </IconButton>
+                                                            </Tooltip>
                                                         </ListItemSecondaryAction>
                                                     </ListItem>
                                                 </Card>
@@ -413,11 +417,12 @@ function MakeSchedule(){
                                                                    value={edit_time}
                                                                    onChange={(newValue) => {
                                                                         console.log("newValue",newValue);
-                                                                        const newValueInUtc = dayjs(newValue).utc().format();  // 转换为 UTC 时间并转换为 ISO 格式
-                                                                        console.log("newValueInUtc",newValueInUtc);
-                                                                        setEdit_time(newValueInUtc);
+//                                                                        const newValueInUtc = dayjs(newValue).utc().format();  // 转换为 UTC 时间并转换为 ISO 格式
+//                                                                        console.log("newValueInUtc",newValueInUtc);
+                                                                        setEdit_time(newValue);
                                                                     }}
                                                                    disablePast
+                                                                   readOnly
                                                                    format="HH:mm"
                                                                    sx={{ fontFamily: 'MSYH' }}
                                                         />
