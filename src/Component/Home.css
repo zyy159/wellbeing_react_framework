@@ -12,3 +12,20 @@
 .go-button-container {
     margin-left: auto;
 }
+
+/* 默认样式 */
+.like-button {
+    cursor: pointer; /* 鼠标变成手指 */
+}
+
+/* 鼠标悬停时的样式 */
+.like-button:hover {
+    background-color: lightgray; /* 悬停时的背景色 */
+    border-radius: 4px; /* 可选：添加圆角边框 */
+}
+
+/* 鼠标悬停时的文本样式 */
+.like-button:hover::after {
+    content: "like"; /* 显示 "like" 文本 */
+    margin-left: 4px; /* 文本距离按钮的间距 */
+}
