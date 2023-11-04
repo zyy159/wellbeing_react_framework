@@ -396,7 +396,7 @@ function Home() {
                 {userInvites.slice(0, 100).map((user,index) => (
                     <div key={user.pk} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                         <Typography variant="subtitle1" sx={{ mt: 1, fontFamily: 'MSYH' }}>
-                            Top index: {user.username} - {user.invites_sent} Invites
+                            Top {index + 1}: {user.username} - {user.invites_sent} Invites
                         </Typography>
                         <div style={{display: 'flex', alignItems: 'center'}}>
                             <IconButton
