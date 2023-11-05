@@ -31,6 +31,9 @@ import Snackbar from '@mui/material/Snackbar';
 import moment from 'moment';
 import { Line } from 'react-chartjs-2';
 import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
+import { Link as RouterLink } from 'react-router-dom';
+import Canvas2Image from "canvas2image"; // 导入用于将 Canvas 转化为图片的库
+import QRCode from 'qrcode'; // 导入 qrcode 库
 
 import cookie from 'react-cookies';
 import axios from 'axios';
@@ -38,6 +41,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MembershipRule from './MembershipRule'; // 根据您的文件结构更新路径
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import CloseIcon from '@mui/icons-material/Close';
 
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
@@ -74,6 +78,10 @@ function Home() {
     const [chartData, setChartData] = React.useState(null);
     const [maxScore, setmaxScore] = React.useState(0);
     const [maxCalories, setmaxCalories] = React.useState(0);
+    const [showTooltip, setShowTooltip] = React.useState(false); // 是否显示提示
+    const [showPoster, setShowPoster] = React.useState(false); // 是否显示海报
+    const [posterImage, setPosterImage] = React.useState(null); // 海报图片
+    const canvasRef = React.useRef(null);
 
     //const [hasLiked, setHasLiked] = React.useState(false);
     const options = {
@@ -562,6 +570,122 @@ function Home() {
             console.error("Failed to fetch user invites:", error);
         }
     };
+    const handleClosePoster = () => {
+        // 关闭海报
+        setShowPoster(false);
+      };
+    // 生成包含邀请码的链接并显示二维码
+    const handleGeneratePoster = () => {
+        const inviteLink = `https://wellbeing.htcangelfund.com/SignUp?invitecode=${invitationCode}`;
+        const canvas = document.createElement("canvas");
+        canvas.width = 300;
+        canvas.height = 300;
+        const ctx = canvas.getContext("2d");
+
+        // 在 Canvas 上绘制文本和二维码
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "red";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+
+        // 获取用户名并绘制在中间
+        const username = cookie.load('user_id');
+
+        ctx.fillText(username, canvas.width / 2, canvas.height / 2 - 10); // 垂直居中，稍微上移一些
+        console.log("generateQRCodectx",ctx);
+        console.log("generateQRCodecanvas",canvas);
+        const options = {
+                          color: {
+                            dark: "#666666", // 红色作为暗色（填充）模块的颜色
+                            light: "#FFFFFF" // 亮色（空白）模块的颜色，这里设置为白色
+                          },
+                          width: 200
+                        };
+        // 使用 qrcode 库生成二维码
+        QRCode.toCanvas(canvas, inviteLink, options, (error) => {
+            if (error) {
+                console.error("Error generating QR code:", error);
+            } else {
+                // 将 Canvas 转换为图片并设置为海报图片
+                const poster = canvas.toDataURL("image/png");
+                // 创建一个新的Canvas元素
+                const mergedCanvas = document.createElement("canvas");
+                const mergedCtx = mergedCanvas.getContext("2d");
+
+
+
+                // 设置新Canvas的宽度和高度
+                const canvasWidth = 258;
+                const canvasHeight = 350; // 可根据需要调整高度
+
+                mergedCanvas.width = canvasWidth;
+                mergedCanvas.height = canvasHeight;
+                // 设置画布的背景
+                const gradient = mergedCtx.createLinearGradient(0, 0, 0, canvasHeight);
+                gradient.addColorStop(0, "#000000"); // 开始颜色
+                gradient.addColorStop(1, "#999999"); // 结束颜色
+                mergedCtx.fillStyle = gradient;
+                mergedCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+//                // 绘制顶部文本 "Invitation"
+//                mergedCtx.fillStyle = "red";
+//                mergedCtx.font = "30px Arial";
+//                mergedCtx.textAlign = "center";
+//                mergedCtx.fillText("Invitation", canvas.width / 2, 30);
+
+              // 获取用户名并绘制在中间
+                let textstr = cookie.load('user_id');
+                let textstrWidth = ctx.measureText(textstr).width;
+                let textX = canvas.width / 2 - textstrWidth/2;
+                mergedCtx.fillStyle = "white";
+                mergedCtx.font = "26px Times New Roman";
+                mergedCtx.fillText(textstr, textX, 30);
+
+              // 绘制底部文本 "Invite you join the Wellbeing Gallery"
+                textstr = "Invite you scan QRcode";
+                textstrWidth = ctx.measureText(textstr).width;
+                textX = canvas.width / 2 - textstrWidth/2;
+                mergedCtx.fillStyle = "red";
+                mergedCtx.font = "16px Times New Roman";
+                mergedCtx.fillText(textstr, textX, 60);
+                // 绘制底部文本 "Invite you join the Wellbeing Gallery"
+                textstr = "To join the Wellbeing Gallery";
+                textstrWidth = ctx.measureText(textstr).width;
+                textX = canvas.width / 2 - textstrWidth/2;
+                mergedCtx.fillStyle = "Burgundy";
+                mergedCtx.font = "16px Times New Roman";
+                mergedCtx.fillText(textstr, textX, 90);
+
+                // 绘制生成的二维码图片
+                const qrCodeImg = new Image();
+                qrCodeImg.src = poster; // 假设posterImage是已生成的二维码图片
+                qrCodeImg.onload = () => {
+                  // 将二维码图片绘制到新Canvas的底部居中位置
+                  const qrCodeWidth = 200; // 二维码图片的宽度
+                  const qrCodeHeight = 200; // 二维码图片的高度
+                  const qrCodeX = (canvasWidth - qrCodeWidth) / 2;
+                  const qrCodeY = canvasHeight - qrCodeHeight - 20; // 底部居中位置，可根据需要调整纵坐标
+
+                  mergedCtx.drawImage(qrCodeImg, qrCodeX, qrCodeY, qrCodeWidth, qrCodeHeight);
+
+                  // 将合并后的Canvas转换为图片
+                  const mergedImage = mergedCanvas.toDataURL("image/png");
+
+
+                  setPosterImage(mergedImage);
+                  setShowPoster(true);
+                  // 设置模态框的大小
+                  const modalContent = document.querySelector(".poster-content");
+                  if (modalContent) {
+                    modalContent.style.width = "80%"; // 设置模态框宽度
+                    modalContent.style.height = "80%"; // 设置模态框高度
+                  }
+                };
+            }
+        });
+    };
+
 
     useEffect(() => {
             if(userToken && userLikees){
@@ -852,24 +976,45 @@ function Home() {
                                     <Grid container item direction="row" justifyContent="center" alignItems="center"
                                           xs="auto" sx={{mb: 1}}>
                                         <Avatar sx={{bgcolor: red[500], width: 56, height: 56}} alt="Stanven"/>
-                                        <Typography variant="h5" sx={{ml: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH'}}>
-                                            Hi {cookie.load('user_id')}! Get started now?
-                                        </Typography>
+                                            <RouterLink to="/ExerciseOption" style={{ textDecoration: 'none' }}>
+                                              <Typography variant="h5" sx={{ ml: 2, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH' }}>
+                                                Hi {cookie.load('user_id')}! Get started now?
+                                              </Typography>
+                                            </RouterLink>
                                     </Grid>
                                     <Grid container item direction="row" justifyContent="center" alignItems="center"
                                           xs="auto" sx={{mb: 1}}>
-                                        {invitationCode ? (
-                                                <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
-                                                    Your Invite Code:
-                                                    <Box component="span" sx={{color: 'red', fontWeight: 'bold'}}>
-                                                        {invitationCode}
-                                                    </Box>
-                                                </Typography>
-                                            ) : (
-                                                <Typography variant="h6" sx={{ml: 2, mt: 1, fontFamily: 'MSYH'}}>
-                                                    Your Invite Code is loading...
-                                                </Typography>
+                                        <div>
+                                          {invitationCode ? (
+                                            <div>
+                                              {/* 显示邀请码，点击邀请码生成二维码海报 */}
+                                              <Tooltip title="Click to generate an invitation poster" arrow>
+                                                <div
+                                                  onMouseEnter={handleMouseEnter}
+                                                  onMouseLeave={handleMouseLeave}
+                                                  style={{ cursor: 'pointer', color: 'red', fontWeight: 'bold' }}
+                                                  onClick={handleGeneratePoster}
+                                                >
+                                                  Your Invite Code: {invitationCode}
+                                                </div>
+                                              </Tooltip>
+                                            </div>
+                                          ) : (
+                                            <Typography variant="h6" sx={{ ml: 2, mt: 1, fontFamily: 'MSYH' }}>
+                                              Your Invite Code is loading...
+                                            </Typography>
+                                          )}
+
+                                          {/* 显示海报 */}
+                                          {showPoster && (
+                                              <div className="poster-modal">
+                                                <div className="poster-content">
+                                                  <CloseIcon className="close-button" onClick={() => setShowPoster(false)} />
+                                                  <img src={posterImage} alt="Poster" />
+                                                </div>
+                                              </div>
                                             )}
+                                        </div>
                                     </Grid>
                                     <Grid container item direction="row" justifyContent="space-between" alignItems="center" sx={{mt: 1}}>
                                         <Grid container item direction="column" justifyContent="center"
