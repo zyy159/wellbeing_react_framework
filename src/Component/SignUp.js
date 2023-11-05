@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect,useRef } from "react";
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink,useLocation } from 'react-router-dom';
 import history from "../Tool/history";
 // import logo from '../Picture/HSBC-LOGO.png';
 import background_pic from '../Picture/Signup Background.png';
@@ -46,6 +46,7 @@ function SignUp() {
     const [verified, setVerified] = React.useState(false);
     const [inviteCode, setInviteCode] = React.useState(""); // 邀请码
     const [inviteCodeStatus, setInviteCodeStatus] = React.useState(null); // 邀请码状态
+    const location = useLocation();
 
     const handleChange = (prop) => (event) =>{
         setValues({ ...values, [prop]: event.target.value });
@@ -205,6 +206,18 @@ function SignUp() {
             setTopage("Home")
         }
     },[])
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const invitecodeParam = params.get('invitecode');
+        if (invitecodeParam) {
+          setInviteCode(invitecodeParam);
+          //console.log("invitecodeParam",invitecodeParam);
+        } else {
+          console.log("Individual signup");
+        }
+  }, [location.search]);  // 依赖于 location.search
+
     if(topage===""){
         return (
             <div className="Signup">
