@@ -603,8 +603,8 @@ function Working_Yoga(){
         let thresholdA, thresholdB, thresholdC;
         switch (difficulty) {
             case "Easy":
-                thresholdA = 30;
-                thresholdB = 50;
+                thresholdA = 15;
+                thresholdB = 30;
                 thresholdC = 60;
                 break;
             case "Medium":
@@ -662,7 +662,7 @@ function Working_Yoga(){
         const n = zScores.length;
         switch (difficulty) {
             case "Easy":
-                confidential = 0.3;
+                confidential = 0.15;
                 break;
             case "Medium":
                 confidential = 0.6;
