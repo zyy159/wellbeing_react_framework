@@ -24,7 +24,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import Divider from '@mui/material/Divider';
 import Button from "@mui/material/Button";
-import {Navigate} from "react-router";
+import {Navigate} from "react-router-dom";
 import Box from '@mui/material/Box';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Snackbar from '@mui/material/Snackbar';
