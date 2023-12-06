@@ -15,7 +15,7 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import BoltIcon from '@mui/icons-material/Bolt';
 import cookie from "react-cookies";
 import history from "../Tool/history";
-import {Navigate} from "react-router";
+import {Navigate} from "react-router-dom";
 
 import axios from 'axios';
 axios.defaults.withCredentials = true;

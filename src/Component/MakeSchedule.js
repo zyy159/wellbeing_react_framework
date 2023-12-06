@@ -1,10 +1,9 @@
 import React, {useEffect} from "react";
-import {useLocation} from 'react-router-dom'
+import {useLocation, Navigate} from 'react-router-dom'
 import AppHeader from '../Tool/App_Header';
 import Mountain from "../Picture/Yoga_Mountain.png";
 import { date_Func,getDateIndex,getDateElement,getEndDatetime } from '../Tool/Date_Func';
 import history from "../Tool/history";
-import {Navigate} from "react-router";
 //import {Access_Token, authProvider, getAuthenticatedClient, Schedule} from '../Tool/Outlook_Func'
 //import { initializeGraphForUserAuth, sendMailAsync} from '../Tool/Outlook_Func';
 
