@@ -21,6 +21,7 @@ import ImageListItem from "@mui/material/ImageListItem";
 import Tree from "../Picture/Yoga_Tree.png";
 import ImageListItemBar from "@mui/material/ImageListItemBar/ImageListItemBar";
 import dayjs from "dayjs";
+import UnlockNewActivityDialog from './UnlockNewActivityDialog';
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
@@ -71,6 +72,7 @@ function ExerciseOption() {
     if(topage===""){
         return(
             <div className="ExerciseOption">
+                <UnlockNewActivityDialog setPath={setPath} setTopage={setTopage} exercisesList={popular_showlist}/>
                 <AppHeader topage={topage} setTopage={setTopage}/>
                 <Grid container direction="column" alignItems="center" justifyContent="center">
                     <Grid container item direction="column" alignItems="center" justifyContent="center"  sx={{ mt: 5, mr: 2, mb: 4}}>
