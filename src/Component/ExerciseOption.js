@@ -58,9 +58,9 @@ function ExerciseOption() {
                     }
                 }
                 //console.log(popular_exercises_Array)
-                setYoga_exercises(yoga_exercises_Array)
-                setPopular_exercises(popular_exercises_Array)
-                setPopular_showlist(popular_exercises_Array.slice(0,5))
+                setYoga_exercises(sortByDifficulty(yoga_exercises_Array))
+                setPopular_exercises(sortByDifficulty(popular_exercises_Array))
+                setPopular_showlist(sortByDifficulty(popular_exercises_Array.slice(0,5)))
             })
         }
     },[])
@@ -69,6 +69,14 @@ function ExerciseOption() {
         const yoga_exercises_Array = popular_exercises.slice((value-1)*5, value*5)
         setPopular_showlist(yoga_exercises_Array)
     };
+
+    const sortByDifficulty = (resultsArray) => {
+      return resultsArray.sort((a, b) => {
+        // 根据难度值进行比较，返回排序后的数组
+        return a.difficulty - b.difficulty;
+      });
+    };
+
     if(topage===""){
         return(
             <div className="ExerciseOption">
