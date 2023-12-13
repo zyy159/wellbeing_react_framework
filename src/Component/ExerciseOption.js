@@ -22,6 +22,8 @@ import Tree from "../Picture/Yoga_Tree.png";
 import ImageListItemBar from "@mui/material/ImageListItemBar/ImageListItemBar";
 import dayjs from "dayjs";
 import UnlockNewActivityDialog from './UnlockNewActivityDialog';
+import ExerciseTooltip from './ExerciseTooltip';
+
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
@@ -91,16 +93,20 @@ function ExerciseOption() {
                             <Card sx={{width:1500, mt: 3 }}>
                                 <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
                                     <img src={Mountain} alt={"Mountain"} width="200" />
-                                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:500, fontFamily: 'MSYH' }}>
-                                            {popular_exercise.name}
-                                        </Typography>
-                                        <Typography variant="h5" sx={{ mt:5, width:500, fontFamily: 'MSYH' }}>
-                                            {popular_exercise.duration/60} mins
-                                            <br/>
-                                            {popular_exercise.popularity} times a week
-                                        </Typography>
-                                    </Grid>
+                                    {/* <ExerciseTooltip exercise={popular_exercise} /> */}
+                                    <ExerciseTooltip exercise={popular_exercise} placement="right">
+                                        <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
+                                            <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:500, fontFamily: 'MSYH' }}>
+                                                {popular_exercise.name}
+                                            </Typography>
+                                            <Typography variant="h5" sx={{ mt:5, width:500, fontFamily: 'MSYH' }}>
+                                                {popular_exercise.duration/60} mins
+                                                <br/>
+                                                {popular_exercise.popularity} times a week
+                                            </Typography>
+                                        </Grid>
+                                    </ExerciseTooltip>
+
                                     <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
                                         <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200,
                                         fontFamily: 'MSYH', ml:3 }}>
