@@ -48,9 +48,12 @@ export default function UnlockNewActivityDialog(props) {
   useEffect(() => {
     /**
      * description of requirements:
-     * "unlock" 有三个可能值，"lock"：user 未达到解锁条件，“unlock": 已经解锁， “new_unlock": user 刚刚满足解锁条件，这个时候需要提示 user 这个 exercise 已经解锁了
+     * "unlock" has three possible values:
+     * "lock": The user has not met the unlocking conditions.
+     * "unlock": The exercise is already unlocked.
+     * "new_unlock": The user has just met the unlocking conditions. At this time, it is necessary to prompt the user that this exercise has been unlocked.
      */
-    // 检查是否有新解锁的运动项目
+    // check for newly unlocked exercise items.
     const newUnlock = exercisesList.find(
       (exercise) => exercise.unlock === 'new_unlock'
       // (exercise) => exercise.unlock === 'unlock'
@@ -91,7 +94,6 @@ export default function UnlockNewActivityDialog(props) {
         </IconButton>
         {newlyUnlockedExercise && (
           <DialogContent>
-            {/* 可以在这里添加图片或图标 */}
             <DialogContentText>
               <Typography gutterBottom>
                 您已解锁：{newlyUnlockedExercise.name}
