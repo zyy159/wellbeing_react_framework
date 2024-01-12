@@ -13,7 +13,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import AppHeader from '../Tool/App_Header';
 import Captcha from 'react-captcha-code';
-import {Navigate} from "react-router";
+import {Navigate} from "react-router-dom";
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedIcon from '@mui/icons-material/Verified';

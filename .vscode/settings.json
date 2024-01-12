@@ -1,0 +1,8 @@
+{
+  "cSpell.words": ["chartjs"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": false,
+    "source.fixAll.eslint": false
+  },
+  "editor.formatOnSave": false
+}

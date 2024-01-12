@@ -12,7 +12,7 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import Button from "@mui/material/Button";
 import BoltIcon from '@mui/icons-material/Bolt';
 import cookie from "react-cookies";
-import {Navigate} from "react-router";
+import {Navigate} from "react-router-dom";
 
 import axios from 'axios';
 import MakeSchedule from "./MakeSchedule";
@@ -21,6 +21,11 @@ import ImageListItem from "@mui/material/ImageListItem";
 import Tree from "../Picture/Yoga_Tree.png";
 import ImageListItemBar from "@mui/material/ImageListItemBar/ImageListItemBar";
 import dayjs from "dayjs";
+import UnlockNewActivityDialog from './UnlockNewActivityDialog';
+import ExerciseTooltip from './ExerciseTooltip';
+import Badge from '@mui/material/Badge';
+import Box from '@mui/material/Box';
+
 axios.defaults.withCredentials = true;
 axios.defaults.headers.post['Content-Type'] = "application/json";
 const server = 'https://wellbeing.htcangelfund.com/api/';
@@ -57,9 +62,9 @@ function ExerciseOption() {
                     }
                 }
                 //console.log(popular_exercises_Array)
-                setYoga_exercises(yoga_exercises_Array)
-                setPopular_exercises(popular_exercises_Array)
-                setPopular_showlist(popular_exercises_Array.slice(0,5))
+                setYoga_exercises(sortByDifficulty(yoga_exercises_Array))
+                setPopular_exercises(sortByDifficulty(popular_exercises_Array))
+                setPopular_showlist(sortByDifficulty(popular_exercises_Array.slice(0,5)))
             })
         }
     },[])
@@ -68,9 +73,18 @@ function ExerciseOption() {
         const yoga_exercises_Array = popular_exercises.slice((value-1)*5, value*5)
         setPopular_showlist(yoga_exercises_Array)
     };
+
+    const sortByDifficulty = (resultsArray) => {
+      return resultsArray.sort((a, b) => {
+        // 根据难度值进行比较，返回排序后的数组
+        return a.difficulty - b.difficulty;
+      });
+    };
+
     if(topage===""){
         return(
             <div className="ExerciseOption">
+                <UnlockNewActivityDialog setPath={setPath} setTopage={setTopage} exercisesList={popular_showlist}/>
                 <AppHeader topage={topage} setTopage={setTopage}/>
                 <Grid container direction="column" alignItems="center" justifyContent="center">
                     <Grid container item direction="column" alignItems="center" justifyContent="center"  sx={{ mt: 5, mr: 2, mb: 4}}>
@@ -78,19 +92,57 @@ function ExerciseOption() {
                             Most Popular
                         </Typography>
                         {popular_showlist.map((popular_exercise) => (
-                            <Card sx={{width:1500, mt: 3 }}>
+                            <Card sx={{width:1500, mt: 3 }} style={{ position:'relative' }}>
                                 <Grid container item direction="row" alignItems="center" justifyContent="flex-start" xs="auto">
-                                    <img src={Mountain} alt={"Mountain"} width="200" />
-                                    <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
-                                        <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:500, fontFamily: 'MSYH' }}>
-                                            {popular_exercise.name}
-                                        </Typography>
-                                        <Typography variant="h5" sx={{ mt:5, width:500, fontFamily: 'MSYH' }}>
-                                            {popular_exercise.duration/60} mins
-                                            <br/>
-                                            {popular_exercise.popularity} times a week
-                                        </Typography>
-                                    </Grid>
+                                <Badge
+                                    badgeContent={
+                                    popular_exercise.unlock === 'lock' ? (
+                                        <span>Lock&nbsp;&nbsp;</span>
+                                    ) : null
+                                    }
+                                    overlap="rectangular"
+                                    anchorOrigin={{
+                                    vertical: 'top',
+                                    horizontal: 'left',
+                                    }}
+                                    sx={{
+                                    '.MuiBadge-badge': {
+                                        transform: 'rotate(-45deg) translate(-50%, -50%)',
+                                        transformOrigin: '0 0',
+                                        position: 'absolute',
+                                        top: '10%',
+                                        left: '12%',
+                                        backgroundColor:
+                                        popular_exercise.unlock === 'lock'
+                                            ? 'grey'
+                                            : 'transparent',
+                                        color: '#fff',
+                                        fontSize: '0.75rem',
+                                        fontWeight: 'bold',
+                                        height: 24,
+                                        minWidth: '120px',
+                                        padding: '0 10px',
+                                    },
+                                    }}
+                                >
+                                    <div style={{width:200,height:200}}>
+                                        <img src={Mountain} alt={'Mountain'} width="200" />
+                                    </div>
+                                </Badge>
+                                    {/* <ExerciseTooltip exercise={popular_exercise} /> */}
+                                    <ExerciseTooltip exercise={popular_exercise} placement="right" style={{position:'relative', zIndex:2}}>
+                                        <Grid container item direction="column" alignItems="flex-start" justifyContent="center" xs="auto" sx={{ml: 4 }}>
+                                            <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.5, width:500, fontFamily: 'MSYH' }}>
+                                                {popular_exercise.name}
+                                            </Typography>
+                                            <Typography variant="h5" sx={{ mt:5, width:500, fontFamily: 'MSYH' }}>
+                                                {popular_exercise.duration/60} mins
+                                                <br/>
+                                                {popular_exercise.popularity} times a week
+                                            </Typography>
+                                        </Grid>
+                                    </ExerciseTooltip>
+
                                     <Grid container item direction="column" alignItems="center" justifyContent="center" xs="auto" sx={{ml: 24}}>
                                         <Typography variant="h3" sx={{ fontWeight: 'bold', lineHeight: 1.5, width: 200,
                                         fontFamily: 'MSYH', ml:3 }}>
@@ -101,9 +153,23 @@ function ExerciseOption() {
                                             CALORIES BURNT
                                         </Typography>
                                     </Grid>
+                                    {popular_exercise.unlock === 'lock' && (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                                zIndex: 1,
+                                            }}
+                                        />
+                                    )}
                                     <div style={{ display: "flex", alignItems: "center" }}>
                                         <Button variant="contained" sx={{ ml: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH' }}
                                           size="large" color="error"
+                                          disabled={popular_exercise.unlock === 'lock'}
                                           onClick={() => {
                                             const id = popular_exercise.id;
                                             setPath("/Working_Yoga?exercise=" + id);
@@ -116,6 +182,7 @@ function ExerciseOption() {
                                         </Button>
                                         <Button variant="contained" sx={{ ml: 2, fontSize: 'h5.fontSize', fontFamily: 'MSYH' }}
                                           size="large" color="primary"
+                                          disabled={popular_exercise.unlock === 'lock'}
                                           onClick={() => {
                                             const id = popular_exercise.id;
                                             setPath("/MakeSchedule?exercise=" + id);

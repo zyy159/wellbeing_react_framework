@@ -24,15 +24,15 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import Divider from '@mui/material/Divider';
 import Button from "@mui/material/Button";
-import {Navigate} from "react-router";
+import {Navigate} from "react-router-dom";
 import Box from '@mui/material/Box';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import Snackbar from '@mui/material/Snackbar';
-import moment from 'moment';
+// import moment from 'moment';
 import { Line } from 'react-chartjs-2';
 import {CategoryScale, Chart,LinearScale,PointElement,LineElement} from 'chart.js';
 import { Link as RouterLink } from 'react-router-dom';
-import Canvas2Image from "canvas2image"; // 导入用于将 Canvas 转化为图片的库
+// import Canvas2Image from "canvas2image"; // 导入用于将 Canvas 转化为图片的库
 import QRCode from 'qrcode'; // 导入 qrcode 库
 
 import cookie from 'react-cookies';
