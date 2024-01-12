@@ -59,6 +59,7 @@ export default function UnlockNewActivityDialog(props) {
       // (exercise) => exercise.unlock === 'unlock'
     );
     if (newUnlock) {
+      console.log("file: UnlockNewActivityDialog.js:63 ~ useEffect ~ newUnlock:", newUnlock)
       setNewlyUnlockedExercise(newUnlock);
       setOpen(true);
     }
@@ -70,14 +71,15 @@ export default function UnlockNewActivityDialog(props) {
         onClose={handleClose}
         aria-labelledby="customized-dialog-title"
         open={open}
-        maxWidth={'lg'}
+        maxWidth={'sm'}
+        fullWidth
       >
         <DialogTitle
           sx={{ m: 0, p: 2 }}
-          fontSize="small"
+          fontSize="middle"
           id="customized-dialog-title"
         >
-          恭喜您解锁新运动项目！
+          Congratulations on unlocking the new sport !
         </DialogTitle>
 
         <IconButton
@@ -96,24 +98,13 @@ export default function UnlockNewActivityDialog(props) {
           <DialogContent>
             <DialogContentText>
               <Typography gutterBottom>
-                您已解锁：{newlyUnlockedExercise.name}
-              </Typography>
-              {newlyUnlockedExercise.description ? (
-                <Typography gutterBottom>
-                  简介：{newlyUnlockedExercise.description}
-                </Typography>
-              ) : null}
-              <Typography gutterBottom>
-                持续时间：{newlyUnlockedExercise.duration} 秒
-              </Typography>
-              <Typography gutterBottom>
-                消耗卡路里：{newlyUnlockedExercise.calories}
+                You have unlock the exercise: {newlyUnlockedExercise.name}
               </Typography>
             </DialogContentText>
           </DialogContent>
         )}
         <DialogActions>
-          <Button onClick={handleClose}>关闭</Button>
+          <Button onClick={handleClose}>Close</Button>
           <Button
             autoFocus
             variant="contained"
@@ -121,7 +112,7 @@ export default function UnlockNewActivityDialog(props) {
             color="error"
             onClick={goToNewExercise}
           >
-            前往新运动
+            Go Now
           </Button>
         </DialogActions>
       </BootstrapDialog>

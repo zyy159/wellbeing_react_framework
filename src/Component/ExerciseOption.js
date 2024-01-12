@@ -125,7 +125,9 @@ function ExerciseOption() {
                                     },
                                     }}
                                 >
-                                    <img src={Mountain} alt={'Mountain'} width="200" />
+                                    <div style={{width:200,height:200}}>
+                                        <img src={Mountain} alt={'Mountain'} width="200" />
+                                    </div>
                                 </Badge>
                                     {/* <ExerciseTooltip exercise={popular_exercise} /> */}
                                     <ExerciseTooltip exercise={popular_exercise} placement="right" style={{position:'relative', zIndex:2}}>

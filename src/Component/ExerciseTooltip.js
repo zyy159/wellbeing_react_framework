@@ -25,12 +25,12 @@ export default function ExerciseTooltip({
     <>
       {remainingExerciseTime > 0 && (
         <Typography color="inherit">
-          还需运动时间：{remainingExerciseTime} 分钟
+         Additional exercise time required: {remainingExerciseTime} minutes
         </Typography>
       )}
       {remainingLoginTimes > 0 && (
         <Typography color="inherit">
-          还需登录次数：{remainingLoginTimes} 次
+         Additional Login times required: {remainingLoginTimes} times
         </Typography>
       )}
     </>
