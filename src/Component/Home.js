@@ -487,9 +487,16 @@ function Home() {
                 setTopage("SignIn")
             }else{
                 setUserToken(cookie.load("token"));
-                const hasCampaign = true;
-
-                setHasOngoingCampaign(hasCampaign);
+                let hasCampaign = false;
+                const currentDate = new Date();
+                const comparisonDate = new Date('2024-01-30');
+                // 检查当前日期是否大于比较日期
+                if (currentDate > comparisonDate) {
+                    // 如果是，执行setHasOngoingCampaign
+                    hasCampaign = true;
+                    setHasOngoingCampaign(hasCampaign);
+                }
+                //setHasOngoingCampaign(hasCampaign);
 
                 if (!hasCampaign) {
                   // Generate a random positive message if there's no ongoing campaign
