@@ -15,6 +15,7 @@ const ResetPassword = asyncComponent(() => import("./Component/ResetPassword"));
 const PromotionSignUp = asyncComponent(() => import("./Component/PromotionSignUp"));
 const PrivacyPolicy = asyncComponent(() => import("./Component/PrivacyPolicy"));
 const MembershipRule = asyncComponent(() => import("./Component/MembershipRule"));
+const CampaignScoreUserList = asyncComponent(() => import("./Component/CampaignScoreUserList"));
 
 
 
@@ -33,6 +34,7 @@ class App extends React.Component{
                     <Route path="/MakeSchedule" element={<MakeSchedule/>} />
                     <Route path="/ResetPassword" element={<ResetPassword/>} />
                     <Route path="/Working_Yoga" element={<Working_Yoga/>} />
+                    <Route path="/CampaignScoreUserList" element={<CampaignScoreUserList/>} />
                     <Route path="/" element={<Home/>} />
                 </Routes>
             </Router>
