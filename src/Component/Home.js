@@ -82,6 +82,9 @@ function Home() {
     const [showPoster, setShowPoster] = React.useState(false); // 是否显示海报
     const [posterImage, setPosterImage] = React.useState(null); // 海报图片
     const canvasRef = React.useRef(null);
+    const [hasOngoingCampaign, setHasOngoingCampaign] = React.useState(false);
+    const [randomPositiveMessage, setRandomPositiveMessage] = React.useState('');
+
 
     //const [hasLiked, setHasLiked] = React.useState(false);
     const options = {
@@ -118,6 +121,53 @@ function Home() {
             }
         },
     };
+
+    const redirectToExercisePage = (exerciseId) => {
+        // Use react-router-dom to navigate to the exercise page with the specified exercise ID
+        console.log('exerciseId:', exerciseId);
+        history.push(`/Working_Yoga?exercise=${exerciseId}`);
+        setTopage("Working_Yoga");
+    }
+
+    function getRandomPositiveMessage() {
+      const messages = [
+          "Stay positive and keep moving forward!",
+          "Believe in yourself and your abilities.",
+          "Every day offers new opportunities for growth.",
+          "Success is not final, failure is not fatal.",
+          "Life is a journey, make the most of it.",
+          "In every challenge, there's a chance to learn.",
+          "Love what you do, and you'll do great work.",
+          "Keep life simple; don't overcomplicate it.",
+          "Plant a tree today for a greener tomorrow.",
+          "Life is short, so make it sweet and memorable.",
+          "Your reaction defines 90% of life's impact.",
+          "Embrace life's adventures, big or small.",
+          "Balance keeps life on the right track.",
+          "Life is too precious to be taken seriously.",
+          "Travel far, embrace discomfort, grow stronger.",
+          "Make life count; it's your only chance.",
+          "Life is a journey, enjoy the ride.",
+          "Opportunities arise within challenges.",
+          "Passion fuels great achievements in life.",
+          "Simplicity is the key to a rich life.",
+          "The best time for change is now.",
+          "Life thrives when you add some sweetness.",
+          "Life's plans often change, adapt with grace.",
+          "Keep moving forward, like a bicycle on a path.",
+          "Your attitude shapes 90% of life's outcomes.",
+          "Life's an adventure; dare to explore it.",
+          "Balance keeps life in harmony and joy.",
+          "Don't miss life by overthinking it.",
+          "Love what you do, success will follow.",
+          "Life's moments are your greatest treasures.",
+          "Believe in yourself; you're capable of greatness."
+        // Add more positive messages here
+      ];
+
+      const randomIndex = Math.floor(Math.random() * messages.length);
+      return messages[randomIndex];
+    }
 
     function timeStringToSeconds(timeString) {
       //console.log("timeString", timeString);
@@ -437,6 +487,15 @@ function Home() {
                 setTopage("SignIn")
             }else{
                 setUserToken(cookie.load("token"));
+                const hasCampaign = true;
+
+                setHasOngoingCampaign(hasCampaign);
+
+                if (!hasCampaign) {
+                  // Generate a random positive message if there's no ongoing campaign
+                  const message = getRandomPositiveMessage();
+                  setRandomPositiveMessage(message);
+                }
             }
     }, []);
 
@@ -1133,16 +1192,52 @@ function Home() {
                                 </Grid>
                             </Paper>
                             <Card sx={{ ml: 4, width: 600, height: 500 }}>
-                                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
-                                    <Typography variant="h6" align="center" gutterBottom sx={{ mt: 2 }}>
-                                        Lastest 50 actions history chart
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center',
+                              justifyContent: 'center', height: '100%' }}>
+                                {/* Promotional card */}
+                                {hasOngoingCampaign ? (
+                                  <div className={`campaign-card-content blinking-border`} onClick={() => window.location.href = "https://wellbeing.htcangelfund.com/Working_Yoga?exercise=20"}>
+                                    <Card sx={{ width: '100%', mt: 1 }}> {/* 调整这里的上边距 mt: 1 */}
+                                      <CardContent>
+                                        <Typography variant="h6" sx={{
+                                          fontWeight: 'bold',
+                                          lineHeight: 0.5,
+                                          color: 'red',
+                                          fontFamily: 'MSYH',
+                                        }}>
+                                          Join Our GDT Annual Party 2023!
+                                        </Typography>
+                                        <Typography variant="body1" sx={{
+                                          fontFamily: 'MSYH',
+                                          mt: 2,
+                                        }}>
+                                          Click here to join us to win top 5 and celebrate the GDT Annual Party 2023!
+                                        </Typography>
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+                                ) : (
+                                  // Display the random positive message when there is no ongoing campaign
+                                  <div>
+                                    <Typography variant="h6" sx={{
+                                      fontWeight: 'bold',
+                                      color: 'red',
+                                      fontFamily: 'MSYH',
+                                      mt: 2, // 调整这里的上边距 mt: 2
+                                    }}>
+                                      {randomPositiveMessage}
                                     </Typography>
-                                    <Box width="100%" height="90%">
-                                        {chartData && (
-                                            <Line data={chartData} options={options} />
-                                        )}
-                                    </Box>
+                                  </div>
+                                )}
+                                <Typography variant="h6" align="center" gutterBottom sx={{ mt: 2 }}>
+                                  Lastest 50 actions history chart
+                                </Typography>
+                                <Box width="100%" height="90%">
+                                  {chartData && (
+                                    <Line data={chartData} options={options} />
+                                  )}
                                 </Box>
+                              </div>
                             </Card>
                         </Grid>
                         <Grid container item direction="row" alignItems="center" justifyContent="space-around"
@@ -1158,12 +1253,11 @@ function Home() {
                             </Card>
                             <Card sx={{ width: '30%' }}>
                                 <CardContent>
-                                    <Typography variant="h6" sx={{fontWeight: 'bold', lineHeight: 1.5, fontFamily:
-                                    'MSYH',textAlign: 'center' }}>
-                                        Exercise Scores Leaderboard
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH', textAlign: 'center' }}>
+                                      Exercise Scores Leaderboard
                                     </Typography>
-                                    <ScoreUserList userScore={userScore} UserScorehandleLike={UserScorehandleLike} />
-                                </CardContent>
+                                      <ScoreUserList userScore={userScore} UserScorehandleLike={UserScorehandleLike} />
+                                 </CardContent>
                             </Card>
                             <Card sx={{ width: '30%' }}>
                                 <CardContent>
