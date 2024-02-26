@@ -489,9 +489,11 @@ function Home() {
                 setUserToken(cookie.load("token"));
                 let hasCampaign = false;
                 const currentDate = new Date();
-                const comparisonDate = new Date('2024-01-30');
+                const comparisonStartDate = new Date('2024-01-30');
+                const comparisonEndDate = new Date('2024-01-31');
                 // 检查当前日期是否大于比较日期
-                if (currentDate > comparisonDate) {
+                // 检查当前日期是否大于比较日期
+                if (comparisonStartDate <= currentDate <= comparisonEndDate) {
                     // 如果是，执行setHasOngoingCampaign
                     hasCampaign = true;
                     setHasOngoingCampaign(hasCampaign);
