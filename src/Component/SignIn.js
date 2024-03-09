@@ -17,6 +17,7 @@ import {Navigate} from "react-router-dom";
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PasswordIcon from '@mui/icons-material/Password';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import Box from '@mui/material/Box';
 
 import cookie from 'react-cookies';
 import md5 from 'js-md5';
@@ -131,6 +132,30 @@ function SignIn() {
                                          ),
                                      }}
                                 />
+                                <Box sx={{ mt: 0 }}>
+                                        <Typography variant="caption" display="block">
+                                            If you are using the Auto Password Generation.  Your password will
+                                            be generated based
+                                            rules below
+                                            (the part before
+                                             '@'):
+                                        </Typography>
+                                        <Typography variant="caption" display="block">
+                                            0. Your password will begin with the prefix "WB_".
+                                        </Typography>
+                                        <Typography variant="caption" display="block">
+                                            1. Capitalize the first letter of the prefix.
+                                        </Typography>
+                                        <Typography variant="caption" display="block">
+                                            2. Keep the rest unchanged.
+                                        </Typography>
+                                        <Typography variant="caption" display="block">
+                                            3. Add '@' followed by the total length of your email.
+                                        </Typography>
+                                        <Typography variant="caption" display="block">
+                                            Example: For 'example.user@example.com', the password is 'WB_Example.user@24'.
+                                        </Typography>
+                                </Box>
                                 <Grid container item justifyContent="center" alignItems="center" direction="row">
                                     <TextField label="Verfication Code" className="Text_Verfication_code"
                                         sx = {{ width:"61ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" required
@@ -184,7 +209,7 @@ function SignIn() {
             </div>
         );
     }else if(topage==="SignUp"){
-        return <Navigate to="/SignUp" replace={true} />
+        return <Navigate to="/Quick_SignUp" replace={true} />
     }else if(topage==="Home"){
         return <Navigate to="/" replace={true} />
     }else if(topage==="ResetPassword"){
