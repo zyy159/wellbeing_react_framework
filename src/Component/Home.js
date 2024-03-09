@@ -492,9 +492,11 @@ function Home() {
                 const comparisonStartDate = new Date('2024-01-30');
                 const comparisonEndDate = new Date('2024-01-31');
                 // 检查当前日期是否大于比较日期
-                // 检查当前日期是否大于比较日期
-                if (comparisonStartDate <= currentDate <= comparisonEndDate) {
+                if (currentDate >= comparisonStartDate && currentDate <= comparisonEndDate) {
                     // 如果是，执行setHasOngoingCampaign
+                    console.log(comparisonStartDate);
+                    console.log(currentDate);
+                    console.log(comparisonEndDate);
                     hasCampaign = true;
                     setHasOngoingCampaign(hasCampaign);
                 }
