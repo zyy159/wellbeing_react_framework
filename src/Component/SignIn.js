@@ -192,7 +192,7 @@ function SignIn() {
                             />
                             <Link component="button" underline="always" sx={{fontFamily: 'MSYH',marginBottom: '10px'}}
                                 onClick={() => {
-                                    history.push({pathname:"/SignUp",state:{}});
+                                    history.push({pathname:"/Quick_SignUp",state:{}});
                                     setTopage("SignUp")
                                 }}
                             >
