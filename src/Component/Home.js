@@ -483,7 +483,7 @@ function Home() {
 
     useEffect(() => {
             if(!cookie.load('user_id')){
-                history.push({pathname:"/Quick_SignUp",state:{}});
+                history.push({pathname:"/SignIn",state:{}});
                 setTopage("SignIn")
             }else{
                 setUserToken(cookie.load("token"));
@@ -821,7 +821,7 @@ function Home() {
     useEffect(() => {
         const fetchData = async () => {
             if (!cookie.load('user_id')) {
-                history.push({ pathname: "/Quick_SignUp", state: {} });
+                history.push({ pathname: "/SignIn", state: {} });
                 setTopage("SignIn");
             } else {
                 const token = cookie.load("token");
@@ -1296,7 +1296,7 @@ function Home() {
     }else if(topage==="ExerciseOption"){
         return <Navigate to="/ExerciseOption" replace={true} />
     }else if(topage==="SignIn"){
-        return <Navigate to="/Quick_SignUp" replace={true} />
+        return <Navigate to="/SignIn" replace={true} />
     }else if(topage==="Working_Yoga"){
         return <Navigate to="/Working_Yoga" replace={true} />
     }
