@@ -22,6 +22,11 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import Tooltip from '@mui/material/Tooltip';
 import PrivacyPolicy from './PrivacyPolicy'; // 根据您的文件结构更新路径
 import Box from '@mui/material/Box';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 
 import cookie from "react-cookies";
@@ -50,22 +55,38 @@ function Quick_SignUp() {
     const [username, setUsername] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [email, setEmail] = React.useState('');
+    const [emailError, setEmailError] = React.useState(false); // 跟踪电子邮件错误
+    const [showPasswordDialog, setShowPasswordDialog] = React.useState(false);
+
 
  // 当电子邮件地址变化时自动生成用户名和密码
     useEffect(() => {
         if (email) {
             const emailPrefix = email.split('@')[0];
             const password = `WB_${emailPrefix.charAt(0).toUpperCase()}${emailPrefix.slice(1)}@${email.length}`;
-            console.log("username",email);
-            console.log("password",password);
+//            console.log("username",email);
+//            console.log("password",password);
             setUsername(email);
             setPassword(password);
         }
     }, [email]);
 
-    const handleChangeEmail = (event) => {
-            setEmail(event.target.value);
+     // 电子邮件校验函数
+    const validateEmail = (email) => {
+        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
+        return re.test(String(email).toLowerCase());
     };
+
+      // 处理电子邮件输入变化的函数
+    const handleChangeEmail = (event) => {
+        const emailInput = event.target.value;
+        setEmail(emailInput);
+        setEmailError(!validateEmail(emailInput)); // 根据电子邮件的校验结果更新错误状态
+    };
+
+//    const handleChangeEmail = (event) => {
+//            setEmail(event.target.value);
+//    };
 
     const handleChange = (prop) => (event) =>{
         setValues({ ...values, [prop]: event.target.value });
@@ -75,6 +96,11 @@ function Quick_SignUp() {
         setChecked(event.target.checked);
     };
     const SignUp_Button = () => {
+        if(emailError) {
+          alert("Please enter a valid email address.");
+          return;
+        }
+
         const data = {
           username: username,
           email: email,
@@ -93,8 +119,10 @@ function Quick_SignUp() {
                 }, (error) => {
                     console.log('The welcome mail fail to be sent!...', error.text);
             });
-            history.push({pathname:"/",state:{}});
-            setTopage("Home");
+//            history.push({pathname:"/",state:{}});
+//            setTopage("Home");
+            // 显示密码对话框而不是直接跳转
+            setShowPasswordDialog(true);
         }).catch(err => {
                console.log("err",err);
                if (err.response && err.response.data) {
@@ -156,6 +184,8 @@ function Quick_SignUp() {
                             </Typography>
                             <Grid container item justifyContent="center" alignItems="center" direction="column">
                                 <TextField label="Email" className="Text_Email"
+                                     error={emailError} // 根据emailError决定是否显示错误状态
+                                     helperText={emailError ? "Invalid email address." : ""}
                                      sx = {{ width:"73ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" type="email" required
                                      onChange={handleChangeEmail}
                                      InputProps={{
@@ -199,7 +229,7 @@ function Quick_SignUp() {
                                 onClick={SignUp_Button}
                                 disabled={!checked} // 这将确保只有在checked为true时按钮才可用
                             >
-                                Sign Up
+                                Sign Up with Auto Pwd
                             </Button>
                             <FormControlLabel
                                 control={
@@ -226,6 +256,26 @@ function Quick_SignUp() {
                         </Grid>
                     </Grid>
                 </div>
+                <Dialog open={showPasswordDialog} onClose={() => setShowPasswordDialog(false)}>
+                  <DialogTitle>Your Password</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText>
+                      Click OK to copy your automatically generated password ({password}) to the clipboard.
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => {
+                      navigator.clipboard.writeText(password).then(() => {
+                          console.log('Password copied to clipboard');
+                          setShowPasswordDialog(false);
+                          history.push({pathname:"/",state:{}});
+                          setTopage("Home");
+                      }).catch(err => {
+                        console.error('Failed to copy the password to clipboard', err);
+                      });
+                    }}>OK</Button>
+                  </DialogActions>
+                </Dialog>
             </div>
         );
     }else if(topage==="SignIn"){
