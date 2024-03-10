@@ -71,6 +71,11 @@ function Quick_SignUp() {
         }
     }, [email]);
 
+    const isValidEmail = email => {
+      // 此正则表达式匹配"hsbc"后面跟随任何字符（代表不同国家的可能性），直到遇到"."，然后是两到四个字母的顶级域名
+      return /\S+@hsbc\.\S{2,4}(\.\S{2})?$/.test(email);
+    };
+
      // 电子邮件校验函数
     const validateEmail = (email) => {
         const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@(([^<>()[\]\\.,;:\s@"]+\.)+[^<>()[\]\\.,;:\s@"]{2,})$/i;
@@ -100,6 +105,10 @@ function Quick_SignUp() {
           alert("Please enter a valid email address.");
           return;
         }
+//        if (!isValidEmail(email)) {
+//            alert('Please enter a valid HSBC email address.');
+//            return;
+//        }
 
         const data = {
           username: username,
