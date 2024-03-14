@@ -190,7 +190,8 @@ function Quick_SignUp() {
             <div className="Quick_SignUp">
                 <AppHeader />
                 <div className="Main">
-                    <Grid container direction="column" justifyContent="center" alignItems="center" xs="auto" sx={{ mb: 2 }}>
+                    <Grid container direction="column" justifyContent="center" alignItems="center" xs="auto" sx={{ mb: 2
+                     }} spacing={isSmallScreen ? 2 : 3}>
                         <img src={background_pic} className="background_pic" alt="" width="100%"/>
                         <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mt: 2 }}>
                             <Typography variant="h3" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH' }}>
