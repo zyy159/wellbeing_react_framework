@@ -6,6 +6,8 @@ import background_pic from '../Picture/Signup Background.png';
 
 import InputAdornment from "@mui/material/InputAdornment";
 import Grid from "@mui/material/Grid";
+import { useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material';
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
@@ -57,6 +59,9 @@ function Quick_SignUp() {
     const [email, setEmail] = React.useState('');
     const [emailError, setEmailError] = React.useState(false); // 跟踪电子邮件错误
     const [showPasswordDialog, setShowPasswordDialog] = React.useState(false);
+    // 使用主题和媒体查询钩子
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
 
  // 当电子邮件地址变化时自动生成用户名和密码
@@ -197,6 +202,7 @@ function Quick_SignUp() {
                                      helperText={emailError ? "Invalid email address." : ""}
                                      sx = {{ width:"73ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" type="email" required
                                      onChange={handleChangeEmail}
+                                     placeholder="Please use your HSBC email address to register" //
                                      InputProps={{
                                          startAdornment: (
                                              <InputAdornment position="start" >
