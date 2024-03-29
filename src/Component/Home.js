@@ -646,7 +646,7 @@ function Home() {
       };
     // 生成包含邀请码的链接并显示二维码
     const handleGeneratePoster = () => {
-        const inviteLink = `https://wellbeing.htcangelfund.com/SignUp?invitecode=${invitationCode}`;
+        const inviteLink = `https://wellbeing.htcangelfund.com/Quick_SignUp?invitecode=${invitationCode}`;
         const canvas = document.createElement("canvas");
         canvas.width = 300;
         canvas.height = 300;
