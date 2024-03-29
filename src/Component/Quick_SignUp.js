@@ -125,6 +125,18 @@ function Quick_SignUp() {
             cookie.save("user_id",username, { maxAge: 60*60*24*365 });
             cookie.save("token",response.data.key, { maxAge: 60*60*24*365 });
             console.log("cookie",response.data.key);
+            if (response.status === 201 && inviteCode) {
+                //console.log("inviteRespond",response);
+                const token = cookie.load("token");
+                axios.post('https://wellbeing.htcangelfund.com/api/exercise/invite/', {
+                    code: inviteCode
+                }, {
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "Authorization": "Token " + token
+                    }
+                });
+            }
             emailjs.send("service_89efw7f","template_qu1hm1r", {
                     to_name: values.username,
                     to_email: values.email,
