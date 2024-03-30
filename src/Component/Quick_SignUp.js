@@ -76,6 +76,12 @@ function Quick_SignUp() {
         }
     }, [email]);
 
+    useEffect(() => {
+            // Add viewport meta tag to ensure mobile responsiveness
+            const viewportMeta = document.querySelector('meta[name="viewport"]');
+            viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1');
+    }, []);
+
     const isValidEmail = email => {
       // 此正则表达式匹配"hsbc"后面跟随任何字符（代表不同国家的可能性），直到遇到"."，然后是两到四个字母的顶级域名
       return /\S+@hsbc\.\S{2,4}(\.\S{2})?$/.test(email);
@@ -202,17 +208,27 @@ function Quick_SignUp() {
             <div className="Quick_SignUp">
                 <AppHeader />
                 <div className="Main">
-                    <Grid container direction="column" justifyContent="center" alignItems="center" sx={{ mb: 2, px: isSmallScreen ? 2 : 8 }}>
+                    <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mb: 2, px: isSmallScreen ? 2 : 8 }}>
                         <img src={background_pic} className="background_pic" alt="" width="100%"/>
-                        <Grid container item justifyContent="center" alignItems="center" xs="auto" sx={{ mb: 2, px: isSmallScreen ? 2 : 8 }}>
-                            <Typography variant="h3" color="#EE270C" sx={{ m:3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH', textAlign: 'center' }}>
+                         <Grid item xs={12} sm={10} md={8} lg={6} xl={4}>
+                            <Typography variant="h3" color="#EE270C" sx={{ m: 3, fontWeight: 'bold', lineHeight: 1.5, fontFamily: 'MSYH', textAlign: 'center', fontSize: isSmallScreen ? '2rem' : '3rem' }}>
                                 Wellbeing Gallery
                             </Typography>
-                            <Grid container item justifyContent="center" alignItems="center" direction="column">
+                            <Grid container item justifyContent="center" alignItems="center" direction="column" sx={{ mb: 2, px: isSmallScreen ? 2 : 8 }}>
                                 <TextField label="Email" className="Text_Email"
                                      error={emailError} // 根据emailError决定是否显示错误状态
                                      helperText={emailError ? "Invalid email address." : ""}
-                                     sx = {{ width:"73ch", m:2, fontFamily: 'MSYH' }} variant={"outlined"} color="error" type="email" required
+                                      sx={{
+                                            width: "100%",
+                                            maxWidth: "73ch",
+                                            m: 2,
+                                            fontFamily: 'MSYH',
+                                            fontSize: isSmallScreen ? '0.75rem' : '1.25rem' // 调整输入框字体大小
+                                      }}
+                                     variant={"outlined"}
+                                     color="error"
+                                     type="email"
+                                     required
                                      onChange={handleChangeEmail}
                                      placeholder="Please use your HSBC email address to register" //
                                      InputProps={{
@@ -223,8 +239,16 @@ function Quick_SignUp() {
                                          ),
                                      }}
                                 />
-                                <Box sx={{ mt: 0 }}>
-                                        <Typography variant="caption" display="block">
+                                <Box sx={{
+                                    m: 1,
+                                    fontWeight: 'bold',
+                                    lineHeight: 1.5,
+                                    fontFamily: 'MSYH',
+                                    textAlign: 'left',
+                                    fontSize: isSmallScreen ? '0.75rem' : '1rem', // 调整帮助文本字体大小
+                                    overflowWrap: 'break-word', // 在需要时自动换行
+                                }}>
+                                        <Typography variant="caption" display="block" >
                                             Auto Password Generation Rules  :  Your password will be generated based on
                                             your
                                             email
@@ -252,7 +276,8 @@ function Quick_SignUp() {
                         </Grid>
                         <Grid container item justifyContent="center" alignItems="center" direction="column" xs="auto">
                             <Button className="Button_Signup"
-                                variant="contained" color="error" sx={{ mt:3, fontSize: "h6.fontSize",width:"33ch", fontFamily: 'MSYH'}}
+                                variant="contained" color="error"
+                                sx={{ mt: 3, width: "100%", fontSize: "h6.fontSize", fontFamily: 'MSYH' }}
                                 onClick={SignUp_Button}
                                 disabled={!checked} // 这将确保只有在checked为true时按钮才可用
                             >
